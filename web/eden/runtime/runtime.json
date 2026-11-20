@@ -4,8 +4,8 @@
   "publishedAt": "2026-10-30T01:12:23.955Z",
   "files": {
     "eden.js": {
-      "size": 335293,
-      "sha256": "2967294cac3b4f2923e8077beca53f7d51c142de923b42f644c4ba4b5d4fd549"
+      "size": 335592,
+      "sha256": "33908f19f4c1cb1128946f7a076c35b7a15826c7ef20796839896cb0ece302d4"
     },
     "eden.wasm": {
       "size": 21742901,

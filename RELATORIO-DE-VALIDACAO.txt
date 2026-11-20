@@ -51,6 +51,10 @@ Wasm JIT, prod.keys e o firmware 22.1.0 fornecidos. A ROM de 6,17 GB foi
 lida em partes pelo navegador. A seleção foi preservada durante a importação.
 [INICIALIZAÇÃO] O interpretador IR identificou e iniciou Kirby com os
 arquivos de sistema, sem apresentar quadros no teste de 70 segundos.
+[OK] O Firefox 160.0.1 reproduziu a falha de setBindGroup acima de 2 GiB
+na ponte WebGPU original. Após a correção, os passes de renderização e
+computação aceitaram os offsets. Kirby passou do primeiro quadro e seguiu
+produzindo quadros no Wasm JIT com a ROM local.
 [INICIALIZAÇÃO] PCSX2 carregou o WebAssembly, importou OpenPS2BIOS 0.6
 e executou o ciclo de emulação. O teste de imagem com homebrew de PS2
 foi inconclusivo. A compatibilidade com jogos depende da BIOS e do título.

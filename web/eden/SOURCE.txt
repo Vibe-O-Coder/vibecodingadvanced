@@ -14,3 +14,7 @@ somente o binário padrão, com JIT e interpretador. Consulte LICENSE.txt.
 O painel de diagnóstico atualiza o log em lotes. A captura de vídeo para
 picture-in-picture só roda quando solicitada. O player orienta a importação
 dos arquivos de sistema ao selecionar formatos que podem vir criptografados.
+
+Em eden.js, wgpuDynamicOffsetsView limita a visualização de memória passada
+a setBindGroup em renderização e computação. O Firefox aceita essa faixa
+mesmo quando a memória total ultrapassa 2 GiB. Os offsets são lidos sem cópia.
