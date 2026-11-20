@@ -486,6 +486,17 @@ kbd {
 .upload-art { font-size: 2.4rem; margin-bottom: 10px; }
 .drop-prompt h2 { font-size: 1.2rem; margin-bottom: 6px; color: #e0e0e0; }
 .drop-prompt p { color: #888; font-size: 0.85rem; margin-bottom: 16px; }
+#boot-help {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #71313d;
+  border-radius: 8px;
+  background: #191c2f;
+  font-size: 0.9rem;
+}
+.boot-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.boot-actions .btn { width: auto; margin-bottom: 0; }
+#boot-import-status:not(:empty) { margin-top: 8px; }
 .pause-overlay {
   position: absolute;
   inset: 0;

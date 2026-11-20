@@ -239,11 +239,13 @@ export const LAUNCH_STAGES = {
 };
 
 // Core::SystemResultStatus, with loader errors as 7 + Loader::ResultStatus.
+export const BAD_NCA_HEADER_RESULT = 7 + 12;
 const LOAD_RESULTS = ['Success', 'core not initialized', 'no loader for this file', 'system files missing',
   'shared font missing', 'video core failed', 'unknown error'];
 // Loader::ResultStatus values that mean keys or firmware are missing or wrong.
 const LOADER_ERRORS = {
-  13: 'prod.keys missing', 14: 'header key missing', 15: 'header key incorrect', 18: 'title key missing',
+  12: 'invalid NCA header', 13: 'prod.keys missing', 14: 'header key missing',
+  15: 'header key incorrect', 18: 'title key missing',
   21: 'key area key missing', 22: 'key area key incorrect', 23: 'title key or KEK incorrect', 29: 'empty file',
   33: 'no RomFS', 52: 'no program NCA in the NSP',
 };
@@ -316,7 +318,8 @@ export function classifyFailure(event) {
   if (!FAILURE_CATEGORIES.includes(category)) category = 'boot';
 
   const files = event.systemFiles;
-  if (category === 'system-files' || (category === 'boot' && files && !files.prodKeys)) {
+  if (category === 'system-files' ||
+      (event.loadResult === BAD_NCA_HEADER_RESULT && files && !files.prodKeys)) {
     category = 'system-files';
     widget = 'system-files';
     if (files && !files.prodKeys) fix = 'prod.keys missing: add your keys in the System Files widget, then reload.';

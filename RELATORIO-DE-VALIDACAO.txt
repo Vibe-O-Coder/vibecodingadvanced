@@ -46,8 +46,11 @@ abriram cartuchos de teste. O Snes9x exibiu a cor programada no cartucho.
 [OK] PPSSPP, Azahar e Dolphin exibiram seus seletores no Chromium com
 isolamento entre origens ativo.
 [OK] Eden executou o homebrew nx-hbmenu 3.6.1 e apresentou quadros via WebGPU.
-[OK] Eden montou a imagem local de Switch de 6,17 GB em um leitor de
-arquivo no navegador. Esse teste verificou a leitura da imagem.
+[OK] O Eden abriu o menu de Kirby and the Forgotten Land no Chromium com
+Wasm JIT, prod.keys e o firmware 22.1.0 fornecidos. A ROM de 6,17 GB foi
+lida em partes pelo navegador. A seleção foi preservada durante a importação.
+[INICIALIZAÇÃO] O interpretador IR identificou e iniciou Kirby com os
+arquivos de sistema, sem apresentar quadros no teste de 70 segundos.
 [INICIALIZAÇÃO] PCSX2 carregou o WebAssembly, importou OpenPS2BIOS 0.6
 e executou o ciclo de emulação. O teste de imagem com homebrew de PS2
 foi inconclusivo. A compatibilidade com jogos depende da BIOS e do título.

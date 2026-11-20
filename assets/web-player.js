@@ -14,7 +14,7 @@ const webCores = [
   },
   {
     id: "eden", name: "Eden", system: "Nintendo Switch", frame: "web/eden/index.html", experimental: true,
-    guide: "Use um navegador com WebGPU. Abra um homebrew ou importe as chaves e o firmware do seu Switch quando o jogo exigir. A interface do porte está em inglês.",
+    guide: "Para jogos criptografados, importe prod.keys e o firmware do seu Switch em Arquivos do sistema. Para jogos 3D, selecione Wasm JIT. O Eden requer WebGPU.",
   },
   { id: "project64", name: "Project64", system: "Nintendo 64", pending: "O Project64 precisa de um núcleo e plug-ins de vídeo, áudio e controle compatíveis com o navegador." },
   { id: "rpcs3", name: "RPCS3", system: "PlayStation 3", pending: "O núcleo Web do RPCS3 inicializou em teste. A execução de jogos continua pendente." },

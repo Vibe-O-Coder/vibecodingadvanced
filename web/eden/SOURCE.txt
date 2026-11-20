@@ -11,5 +11,6 @@ Os artefatos da versão v0.0.4-rc2-1121-gd358e857c4 estão em runtime.
 O tamanho e o SHA-256 de cada arquivo constam em runtime/runtime.json.
 A integração usa os cabeçalhos da hospedagem para isolamento e inclui
 somente o binário padrão, com JIT e interpretador. Consulte LICENSE.txt.
-O painel de diagnóstico atualiza o log em lotes para reduzir o trabalho
-da interface durante a emulação.
+O painel de diagnóstico atualiza o log em lotes. A captura de vídeo para
+picture-in-picture só roda quando solicitada. O player orienta a importação
+dos arquivos de sistema ao selecionar formatos que podem vir criptografados.

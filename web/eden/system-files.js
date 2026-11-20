@@ -49,25 +49,22 @@ async function allEntries() {
   return keys.map((key, i) => [key, values[i]]);
 }
 
-async function deletePrefix(prefix) {
+async function putAll(records, replacePrefix) {
   const db = await openDb();
-  const tx = db.transaction(STORE, 'readwrite');
-  const store = tx.objectStore(STORE);
-  const range = IDBKeyRange.bound(prefix, prefix + '￿');
-  store.delete(range);
-  await done(tx);
-  db.close();
-}
-
-async function putAll(records) {
-  const db = await openDb();
-  const tx = db.transaction(STORE, 'readwrite');
-  const store = tx.objectStore(STORE);
-  for (const [key, value] of records) {
-    store.put(value, key);
+  try {
+    const tx = db.transaction(STORE, 'readwrite');
+    const store = tx.objectStore(STORE);
+    try {
+      if (replacePrefix) store.delete(IDBKeyRange.bound(replacePrefix, replacePrefix + '\uffff'));
+      for (const [key, value] of records) store.put(value, key);
+    } catch (error) {
+      tx.abort();
+      throw error;
+    }
+    await done(tx);
+  } finally {
+    db.close();
   }
-  await done(tx);
-  db.close();
 }
 
 // Minimal ZIP reader: walks the central directory and returns lazily-sliced entries. Firmware
@@ -272,10 +269,9 @@ export async function importSystemFile(file, onProgress = () => {}) {
     onProgress(++copied, ncaEntries.length);
   }
   if (isFirmwareSet) {
-    await deletePrefix(FIRMWARE_PREFIX);
     records.push([META_FIRMWARE, { source: file.name, count: ncaEntries.length }]);
   }
-  await putAll(records);
+  await putAll(records, isFirmwareSet ? FIRMWARE_PREFIX : null);
 
   return {
     keys: keyEntries.map(e => baseName(e.name)),
@@ -317,8 +313,7 @@ export async function clearSystemFiles() {
   db.close();
 }
 
-/// Writes every stored key and firmware file into the Emscripten FS. Must run before
-/// eden_init so the key manager and system NAND see them.
+/// Mounts system files before eden_boot reloads the keys and initializes the system NAND.
 export async function mountSystemFiles(FS, root = EDEN_DATA_ROOT) {
   let mounted = 0;
   for (const [key, value] of await allEntries()) {
@@ -327,7 +322,7 @@ export async function mountSystemFiles(FS, root = EDEN_DATA_ROOT) {
     }
     const path = `${root}/${key}`;
     FS.mkdirTree(path.slice(0, path.lastIndexOf('/')));
-    FS.writeFile(path, new Uint8Array(await value.arrayBuffer()));
+    FS.writeFile(path, new Uint8Array(await value.arrayBuffer()), { canOwn: true });
     mounted++;
   }
   return mounted;

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
+  EDEN_DATA_ROOT,
   importSystemFile,
   getSystemFileStatus,
   clearSystemFiles,
@@ -32,7 +33,7 @@ import {
   clearCrashes,
 } from './recovery.js';
 import { setupCompatibility } from './compat.js';
-import { setupDiagnostics } from './diagnostics.js';
+import { BAD_NCA_HEADER_RESULT, describeLoadResult, setupDiagnostics } from './diagnostics.js';
 
 // DOM Elements
 const canvas = document.getElementById('canvas');
@@ -55,6 +56,11 @@ const btnFullscreen = document.getElementById('btn-fullscreen');
 const screenStage = document.getElementById('screen-stage');
 const switchDevice = document.getElementById('switch-device');
 const romStatus = document.getElementById('rom-status');
+const bootHelp = document.getElementById('boot-help');
+const bootHelpText = document.getElementById('boot-help-text');
+const bootImportStatus = document.getElementById('boot-import-status');
+const bootRetry = document.getElementById('boot-retry');
+const bootWithoutKeys = document.getElementById('boot-without-keys');
 const fileLabel = document.getElementById('file-label');
 const fpsCaption = document.getElementById('fps');
 const systemFps = document.getElementById('system-fps');
@@ -80,6 +86,7 @@ let memoryUnavailable = false;
 let loadingRom = false;
 let crashed = false;
 let browserRom = null;
+let pendingBootFile = null;
 
 // Log widget: engine output and frontend events, newest at the bottom.
 const LOG_LIMIT = 500;
@@ -462,8 +469,8 @@ async function initWasmCoreOnce() {
   }
   if (!window.crossOriginIsolated) {
     wasmStatusText.textContent = 'Needs cross-origin isolation';
-    wasmState.textContent = 'Reload once the service worker is active';
-    log('Cross-origin isolation is not active yet; reload once the service worker is installed.', 'err');
+    wasmState.textContent = 'Open through the project server or Cloudflare Pages';
+    log('Cross-origin isolation requires the COOP and COEP response headers.', 'err');
     diagnostics.fail('environment', 'Cross-origin isolation is not active');
     initPromise = null;
     return;
@@ -585,6 +592,37 @@ function showRuntimeInfo(state) {
   return stats;
 }
 
+function showBootFailure() {
+  loader.fail();
+  const result = edenModule._eden_get_load_result();
+  const { category, text } = describeLoadResult(result);
+  let detail = `Falha na inicialização (${result}). Consulte o registro do Eden.`;
+  let needsSystemFiles = false;
+  if (edenModule._eden_is_switch2_title?.() === 1) {
+    detail = 'O Eden Web ainda não abre jogos de Nintendo Switch 2.';
+  } else if (gpuFailure) {
+    detail = `O WebGPU falhou ao iniciar. ${gpuFailure}`;
+  } else if (category === 'system-files' || result === BAD_NCA_HEADER_RESULT) {
+    needsSystemFiles = true;
+    const hasProdKeys = edenModule.FS.analyzePath(`${EDEN_DATA_ROOT}/keys/prod.keys`).exists;
+    if (!hasProdKeys) {
+      detail = 'Falta o arquivo prod.keys';
+      bootHelpText.textContent = 'Importe o prod.keys e o firmware do seu Switch. Em seguida, recarregue o Eden e abra o jogo.';
+    } else if (result === 3 || result === 4) {
+      bootHelpText.textContent = 'Confira o firmware do seu Switch em Arquivos do sistema e tente novamente.';
+    } else {
+      bootHelpText.textContent = 'Confira se as chaves do seu Switch são compatíveis com o jogo e se a imagem está íntegra. Se o jogo precisar, importe também o title.keys.';
+    }
+  }
+  bootRetry.textContent = 'Recarregar o Eden';
+  bootWithoutKeys.hidden = true;
+  bootImportStatus.textContent = '';
+  bootHelp.hidden = !needsSystemFiles;
+  wasmStatusText.textContent = detail;
+  romStatus.textContent = detail;
+  log(text, 'err');
+}
+
 function pollStatus() {
   if (!edenModule || crashed || memoryUnavailable) return;
   const state = edenModule._eden_get_state();
@@ -598,9 +636,12 @@ function pollStatus() {
   fullscreenPause.disabled = !(isRunning || isPaused);
   btnPlay.disabled = !isPaused;
   btnPause.disabled = !isRunning;
-  btnReset.disabled = !(isRunning || isPaused);
+  btnReset.disabled = !(isRunning || isPaused || state === 4);
   btnStep.disabled = true;
-  if (isRunning) attachPipStream();
+  if (canPip) {
+    const ready = pipVideo.srcObject || (isRunning && runtimeStats?.frames > 0);
+    btnPip.disabled = btnPipStage.disabled = !ready;
+  }
   if (state !== lastState) {
     lastState = state;
     if (state === 1) peakFps = 0;
@@ -608,14 +649,9 @@ function pollStatus() {
     if ((state === 2 || state === 4) && edenModule._eden_is_switch2_title?.() === 1) {
       log('This is a Nintendo Switch 2 game. Switch 2 games are not supported yet, so it may not boot or run correctly.', 'err');
     }
+    if (state === 4) showBootFailure();
   }
-  if (state === 4) {
-    loader.fail();
-    wasmStatusText.textContent = edenModule._eden_is_switch2_title?.() === 1
-      ? 'Boot failed: Nintendo Switch 2 games are not supported yet'
-      : `Boot failed (load result ${edenModule._eden_get_load_result()})`;
-    romStatus.textContent = gpuFailure ? `GPU initialization failed: ${gpuFailure}. This runtime has no WebGL fallback; see the engine log for adapter/device errors.` : wasmStatusText.textContent;
-  } else if (state >= 1 && state <= 3) {
+  if (state >= 1 && state <= 3) {
     wasmStatusText.textContent = `${name}: ${currentRomName}`;
   }
   const finite = (value) => (Number.isFinite(value) ? value : 0);
@@ -654,6 +690,7 @@ function resetEmulation() {
 }
 
 const ROM_EXTENSIONS = ['.nsp', '.xci', '.nro', '.nca', '.nso'];
+const SYSTEM_IMAGE_EXTENSIONS = ['.nsp', '.xci', '.nca'];
 // .nca is left out: an archive of NCAs is a firmware dump.
 const ARCHIVED_ROM_EXTENSIONS = ['.nsp', '.xci', '.nro', '.nso'];
 
@@ -688,7 +725,7 @@ async function findRomInArchive(file) {
 }
 
 // Handle dropped or selected ROM file, or an archive holding one
-async function handleFile(file) {
+async function handleFile(file, openWithoutKeys = false) {
   if (!file) return;
   if (loadingRom || isRomLoaded) {
     log('ROM selection ignored: a game is already loading or loaded.', 'ui');
@@ -698,7 +735,7 @@ async function handleFile(file) {
   fileInput.disabled = true;
   browseBtn.disabled = true;
   try {
-    await loadFile(file);
+    await loadFile(file, openWithoutKeys);
   } finally {
     loadingRom = false;
     fileInput.disabled = isRomLoaded;
@@ -706,7 +743,7 @@ async function handleFile(file) {
   }
 }
 
-async function loadFile(file) {
+async function loadFile(file, openWithoutKeys) {
   let rom = { name: file.name, size: file.size, file, stream: async () => file.stream() };
   const lowerName = file.name.toLowerCase();
   if (lowerName.endsWith('.keys')) {
@@ -760,10 +797,27 @@ async function loadFile(file) {
       return;
     }
 
+    pendingBootFile = null;
+    bootHelp.hidden = true;
     currentRomName = rom.name;
     titleName.textContent = rom.name;
     fileLabel.textContent = rom.name;
     titleSize.textContent = rom.size >= 0 ? `${(rom.size / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
+
+    if (!openWithoutKeys && hasExtension(rom.name, SYSTEM_IMAGE_EXTENSIONS)) {
+      const files = await getSystemFileStatus().catch(() => null);
+      if (files && !files.prodKeys) {
+        pendingBootFile = file;
+        bootHelpText.textContent = 'Para abrir um jogo criptografado, importe o prod.keys e o firmware do seu Switch. Você já selecionou o jogo.';
+        bootImportStatus.textContent = '';
+        bootRetry.textContent = 'Abrir jogo';
+        bootWithoutKeys.hidden = false;
+        bootHelp.hidden = false;
+        setRomStatus('Falta o arquivo prod.keys para jogos criptografados.');
+        wasmStatusText.textContent = romStatus.textContent;
+        return;
+      }
+    }
 
     // Raw compressed streams (game.nsp.xz) do not record the size, so progress shows bytes only.
     loader.begin(Math.max(rom.size, 0));
@@ -806,12 +860,14 @@ async function loadFile(file) {
       stopSaveWatch = watchSaves(() => edenModule?.FS, () => isRunning && !crashed, showSavePoint);
       compat.startSession({ module: edenModule, rom, core: runningCore });
       dropZone.style.display = 'none';
+      canvas.focus({ preventScroll: true });
       fileInput.disabled = true;
       setRomStatus(`Booting ${rom.name}. Reload the page to load a different game.`);
       statusTimer ??= setInterval(pollStatus, 500);
     } catch (err) {
       browserRom?.close();
       browserRom = null;
+      dropZone.style.display = '';
       console.error('Failed to load ROM:', err.stack || err.message);
       alert(`Failed to load ROM: ${err.message}`);
       loader.fail();
@@ -910,38 +966,42 @@ const btnPipStage = document.getElementById('btn-pip-stage');
 const pipOverlay = document.getElementById('pip-overlay');
 const pipHelp = document.getElementById('pip-help');
 const canPip = !!(document.pictureInPictureEnabled && canvas.captureStream && pipVideo.requestPictureInPicture);
+let pipOpening = false;
 
-// The canvas stream only has frames once a game draws, so it is attached at boot
-// and PiP stays unavailable until the video has its first frame.
-function attachPipStream() {
-  if (!canPip || pipVideo.srcObject) return;
-  pipVideo.srcObject = canvas.captureStream(60);
-  pipVideo.play().catch(() => {});
+function stopPipStream() {
+  for (const track of pipVideo.srcObject?.getTracks() ?? []) track.stop();
+  pipVideo.srcObject = null;
 }
-pipVideo.addEventListener('loadedmetadata', () => {
-  btnPip.disabled = false;
-  btnPipStage.disabled = false;
-});
 
 async function togglePictureInPicture() {
-  if (!canPip) return;
+  if (!canPip || pipOpening) return;
+  pipOpening = true;
+  let timeout;
   try {
     if (document.pictureInPictureElement) {
       await document.exitPictureInPicture();
       return;
     }
-    if (pipVideo.readyState < 1) return;
     if (fullscreenElement()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    pipVideo.srcObject = canvas.captureStream(60);
+    await Promise.race([
+      pipVideo.play(),
+      new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('No video frame received')), 2000); }),
+    ]);
     await pipVideo.requestPictureInPicture();
   } catch (err) {
     log(`Picture-in-picture failed: ${err.message}`, 'err');
+  } finally {
+    clearTimeout(timeout);
+    pipOpening = false;
+    if (!document.pictureInPictureElement) stopPipStream();
   }
 }
 
 function onPipChange(active) {
   pipOverlay.hidden = !active;
   btnPip.textContent = active ? '✕ Exit picture-in-picture' : '⧉ Picture-in-picture';
-  if (!active) pipVideo.play().catch(() => {});
+  if (!active) stopPipStream();
 }
 pipVideo.addEventListener('enterpictureinpicture', () => onPipChange(true));
 pipVideo.addEventListener('leavepictureinpicture', () => onPipChange(false));
@@ -1011,8 +1071,20 @@ const sysFirmware = document.getElementById('sys-firmware');
 const sysProgress = document.getElementById('sys-progress');
 const keysInput = document.getElementById('keys-input');
 const firmwareInput = document.getElementById('firmware-input');
-const systemButtons = ['btn-add-keys', 'btn-add-firmware', 'btn-clear-system']
+const systemButtons = ['btn-add-keys', 'btn-add-firmware', 'btn-clear-system',
+  'boot-add-keys', 'boot-add-firmware', 'boot-retry', 'boot-without-keys']
   .map(id => document.getElementById(id));
+let systemFilesBusy = false;
+
+function setSystemFilesBusy(busy) {
+  systemFilesBusy = busy;
+  for (const button of systemButtons) button.disabled = busy;
+}
+
+function setSystemProgress(message) {
+  sysProgress.textContent = message;
+  if (!bootHelp.hidden) bootImportStatus.textContent = message;
+}
 
 function setPresence(elem, present, text) {
   elem.textContent = text;
@@ -1025,54 +1097,72 @@ async function refreshSystemStatus() {
     const status = await getSystemFileStatus();
     systemTag.classList.toggle('highlight', status.prodKeys);
     systemTag.classList.toggle('missing', !status.prodKeys);
-    setPresence(sysProdKeys, status.prodKeys, status.prodKeys ? 'Installed' : 'Missing');
-    setPresence(sysTitleKeys, status.titleKeys, status.titleKeys ? 'Installed' : 'Optional');
+    setPresence(sysProdKeys, status.prodKeys, status.prodKeys ? 'Importado' : 'Ausente');
+    setPresence(sysTitleKeys, status.titleKeys, status.titleKeys ? 'Importado' : 'Opcional');
     sysTitleKeys.classList.remove('missing');
     const mb = (status.firmwareBytes / (1024 * 1024)).toFixed(0);
     setPresence(sysFirmware, status.firmwareCount > 0,
-      status.firmwareCount > 0 ? `${status.firmwareCount} NCAs, ${mb} MB` : 'Missing');
-    systemTag.textContent = status.prodKeys ? 'Ready' : 'Keys required';
-    if (status.firmwareSource) {
-      sysFirmware.title = status.firmwareSource;
-    }
+      status.firmwareCount > 0 ? `${status.firmwareCount} NCAs, ${mb} MB` : 'Ausente');
+    systemTag.textContent = status.prodKeys ? 'Chaves importadas' : 'Aguardando prod.keys';
+    sysFirmware.title = status.firmwareSource ?? '';
   } catch (err) {
-    systemTag.textContent = 'Unavailable';
-    sysProgress.textContent = `IndexedDB unavailable: ${err.message}`;
+    systemTag.textContent = 'Indisponível';
+    setSystemProgress(`Não foi possível acessar os arquivos salvos neste navegador (${err.message}).`);
   }
 }
 
 async function importSystemFiles(files) {
-  systemButtons.forEach(btn => { btn.disabled = true; });
+  if (!files.length || systemFilesBusy) return;
+  setSystemFilesBusy(true);
   try {
     for (const file of files) {
-      sysProgress.textContent = `Importing ${file.name}...`;
+      setSystemProgress(`Importando ${file.name}…`);
       const result = await importSystemFile(file, (copied, total) => {
-        sysProgress.textContent = `Importing ${file.name}: ${copied}/${total} NCAs`;
+        setSystemProgress(`Importando ${file.name} (${copied}/${total} arquivos de firmware)…`);
       });
       const parts = [];
       if (result.keys.length) parts.push(result.keys.join(', '));
-      if (result.firmwareCount) parts.push(`${result.firmwareCount} firmware NCAs`);
-      sysProgress.textContent = `Imported ${parts.join(' and ')} from ${file.name}.`;
+      if (result.firmwareCount) parts.push(`${result.firmwareCount} arquivos de firmware`);
+      setSystemProgress(`Importação concluída (${parts.join(' e ')}).`);
     }
-    if (isRomLoaded) {
-      sysProgress.textContent += ' Reload the page to apply.';
-    }
+    if (pendingBootFile) setSystemProgress(`${sysProgress.textContent} Use Abrir jogo para continuar.`);
+    else if (isRomLoaded) setSystemProgress(`${sysProgress.textContent} As alterações serão aplicadas ao reabrir o jogo.`);
   } catch (err) {
     console.error('System file import failed:', err);
-    sysProgress.textContent = `Import failed: ${err.message}`;
+    setSystemProgress(`Falha ao importar o arquivo (${err.message}).`);
   } finally {
-    systemButtons.forEach(btn => { btn.disabled = false; });
     await refreshSystemStatus();
+    setSystemFilesBusy(false);
   }
 }
 
-document.getElementById('btn-add-keys').addEventListener('click', () => keysInput.click());
-document.getElementById('btn-add-firmware').addEventListener('click', () => firmwareInput.click());
+for (const id of ['btn-add-keys', 'boot-add-keys']) {
+  document.getElementById(id).addEventListener('click', () => keysInput.click());
+}
+for (const id of ['btn-add-firmware', 'boot-add-firmware']) {
+  document.getElementById(id).addEventListener('click', () => firmwareInput.click());
+}
+bootRetry.addEventListener('click', () => {
+  if (pendingBootFile) handleFile(pendingBootFile);
+  else resetEmulation();
+});
+bootWithoutKeys.addEventListener('click', () => {
+  if (!systemFilesBusy) handleFile(pendingBootFile, true);
+});
 document.getElementById('btn-clear-system').addEventListener('click', async () => {
-  if (!confirm('Remove stored keys and firmware from this browser?')) return;
-  await clearSystemFiles();
-  sysProgress.textContent = 'Cleared stored keys and firmware.';
-  await refreshSystemStatus();
+  if (!confirm('Remover as chaves e o firmware importados neste navegador?')) return;
+  setSystemFilesBusy(true);
+  try {
+    await clearSystemFiles();
+    setSystemProgress(isRomLoaded
+      ? 'Chaves e firmware removidos. Recarregue o Eden para aplicar a alteração.'
+      : 'Chaves e firmware removidos.');
+    await refreshSystemStatus();
+  } catch (err) {
+    setSystemProgress(`Falha ao limpar os arquivos (${err.message}).`);
+  } finally {
+    setSystemFilesBusy(false);
+  }
 });
 
 for (const input of [keysInput, firmwareInput]) {

@@ -85,12 +85,12 @@
             <div class="screen-frame">
               <canvas id="canvas" width="1280" height="720" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
 
-              <div id="drop-zone" class="drop-zone">
+              <div id="drop-zone" class="drop-zone" lang="pt-BR">
                 <div class="drop-prompt">
                   <div class="upload-art">⚡</div>
-                  <h2>Drop Nintendo Switch ROM</h2>
-                  <p>Supports decrypted <strong>.nsp</strong>, <strong>.xci</strong>, and homebrew <strong>.nro</strong>, or an archive holding one (<strong>.zip</strong>, <strong>.7z</strong>, <strong>.rar</strong>, <strong>.tar</strong>, …)</p>
-                  <button type="button" id="browse-btn" class="btn btn-primary">Select ROM File</button>
+                  <h2>Escolha um jogo de Nintendo Switch</h2>
+                  <p>Arraste um arquivo <strong>.nsp</strong>, <strong>.xci</strong> ou <strong>.nro</strong>, ou selecione um arquivo compactado. Jogos criptografados precisam do <strong>prod.keys</strong> do seu Switch.</p>
+                  <button type="button" id="browse-btn" class="btn btn-primary">Selecionar jogo</button>
                 </div>
               </div>
 
@@ -144,6 +144,16 @@
           Canvas 1280×720 — Switch handheld resolution
           <span id="fps"></span>
         </p>
+        <section id="boot-help" aria-label="Arquivos exigidos pelo jogo" lang="pt-BR" hidden>
+          <p id="boot-help-text" role="status"></p>
+          <div class="boot-actions">
+            <button type="button" id="boot-add-keys" class="btn btn-secondary">Importar chaves</button>
+            <button type="button" id="boot-add-firmware" class="btn btn-secondary">Importar firmware</button>
+            <button type="button" id="boot-retry" class="btn btn-primary">Tentar novamente</button>
+            <button type="button" id="boot-without-keys" class="btn btn-secondary" hidden>Abrir sem chaves</button>
+          </div>
+          <p id="boot-import-status" class="mode-help" role="status"></p>
+        </section>
       </div>
 
       <div class="card" data-widget="renderer"
@@ -251,21 +261,21 @@
         <div id="rom-eta" class="mode-help" aria-live="off" hidden></div>
       </div>
 
-      <div class="card" id="system-files-card" data-widget="system-files"
+      <div class="card" id="system-files-card" data-widget="system-files" lang="pt-BR"
            data-settings="add or clear prod.keys, title.keys and firmware">
-        <h2>🔑 System Files</h2>
-        <div class="stat-row"><span class="label">Status</span><span id="system-files-tag" class="value">Checking...</span></div>
+        <h2>🔑 Arquivos do sistema</h2>
+        <div class="stat-row"><span class="label">Status</span><span id="system-files-tag" class="value">Verificando…</span></div>
         <div class="stat-row"><span class="label">prod.keys</span><span id="sys-prod-keys" class="value">--</span></div>
         <div class="stat-row"><span class="label">title.keys</span><span id="sys-title-keys" class="value">--</span></div>
         <div class="stat-row"><span class="label">Firmware</span><span id="sys-firmware" class="value">--</span></div>
         <div class="button-row">
-          <button type="button" id="btn-add-keys" class="btn btn-secondary">Add Keys</button>
-          <button type="button" id="btn-add-firmware" class="btn btn-secondary">Add Firmware</button>
+          <button type="button" id="btn-add-keys" class="btn btn-secondary">Importar chaves</button>
+          <button type="button" id="btn-add-firmware" class="btn btn-secondary">Importar firmware</button>
         </div>
-        <button type="button" id="btn-clear-system" class="btn btn-danger">Clear stored files</button>
+        <button type="button" id="btn-clear-system" class="btn btn-danger">Limpar arquivos importados</button>
         <input type="file" id="keys-input" accept=".zip,.7z,.rar,.tar,.tgz,.tbz,.tbz2,.txz,.tzst,.gz,.bz2,.xz,.lzma,.zst,.lz,.lz4,.cab,.cpio,.keys" multiple hidden>
         <input type="file" id="firmware-input" accept=".zip,.7z,.rar,.tar,.tgz,.tbz,.tbz2,.txz,.tzst,.gz,.bz2,.xz,.lzma,.zst,.lz,.lz4,.cab,.cpio,.nca" multiple hidden>
-        <p id="sys-progress" class="mode-help" aria-live="polite">Drop a keys or firmware archive (.zip, .7z, .rar, …) here. Files stay in this browser.</p>
+        <p id="sys-progress" class="mode-help" aria-live="polite">Importe o prod.keys e o firmware do seu Switch. Os arquivos ficam neste navegador.</p>
       </div>
 
       <div class="card" data-widget="controls"

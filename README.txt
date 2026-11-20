@@ -38,9 +38,12 @@ os cartões de memória no navegador. O renderizador usa WebGPU quando
 disponível e oferece renderização por software.
 
 Eden usa o porte Eden Web e requer WebGPU e suporte a WebAssembly Memory64.
-Abra homebrews .nro ou imagens compatíveis do Switch. Importe as chaves e
-o firmware do seu console quando o jogo exigir. Os arquivos de sistema
-e os saves ficam no navegador. Desempenho e compatibilidade variam por jogo.
+Para Kirby and the Forgotten Land, selecione Wasm JIT. Em Arquivos do
+sistema, use Importar chaves para o prod.keys e Importar firmware para o ZIP
+do seu Switch. Se já tiver escolhido a ROM, clique em Abrir jogo depois de
+importar. Você também pode importar primeiro e selecionar a ROM em seguida.
+Homebrews .nro podem abrir sem esses arquivos. As chaves, o firmware e os
+saves ficam no perfil e no endereço do site usados no navegador.
 
 Os saves ficam no perfil do navegador e no endereço em que o jogo foi
 aberto. Para usar os saves do VBA Web gerados pelo index.html aberto
@@ -57,14 +60,15 @@ Consulte source/web-cores/README.txt para as versões, fontes e licenças.
 
 PUBLICAR NO CLOUDFLARE PAGES
 
-Execute node prepare-cloudflare.mjs na pasta do projeto. Envie apenas a
-pasta dist ao Cloudflare Pages pelo upload de arquivos estáticos. Para
-gerar outra pasta, use node prepare-cloudflare.mjs nome-da-pasta.
+Envie a pasta dist ao Cloudflare Pages pelo upload de arquivos estáticos.
+Depois de editar o projeto, gere um novo pacote com
+node prepare-cloudflare.mjs nome-da-pasta.
 
 O comando verifica o limite de 25 MiB por arquivo e inclui _headers para
 manter o isolamento necessário aos emuladores com múltiplas threads.
-O pacote público aceita a importação de jogos pelo navegador. A biblioteca
-incluída no projeto fica disponível na cópia local.
+O pacote público aceita a importação de jogos pelo navegador. O pacote
+contém o site e os núcleos WebAssembly. ROMs, chaves e firmware são
+selecionados pelo jogador em seu próprio dispositivo.
 
 Em outra hospedagem estática, sirva o pacote em HTTPS, use application/wasm
 para os arquivos .wasm e envie os dois cabeçalhos em todas as páginas e
