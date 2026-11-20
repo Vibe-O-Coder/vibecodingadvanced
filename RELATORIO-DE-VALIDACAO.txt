@@ -1,0 +1,58 @@
+RELATORIO DE VERIFICACAO - VBA-WEB CHEATS AMPLIADOS (19/11/2026)
+
+NOVIDADES
+- 107 modelos adicionais de cheats, reaproveitados quando apropriado entre jogos da mesma família.
+- 274 presets prontos distribuídos pelas nove ROMs (somando as opções exibidas por jogo).
+- Seletor por espécie com 386 Pokémon de GBA e 251 Pokémon de GBC.
+- Busca, filtros de categoria, indicação da fonte e aviso de compatibilidade.
+- Gold/Silver: Rare Candy (0120E2D5) e Master Ball (0101E2D5) corrigidos.
+- FireRed/LeafGreen 1.1: itens no PC utilizam códigos específicos de Action Replay com master/anti-DMA.
+
+PRESETS POR ROM
+- FireRed US Rev 1: 49
+- FireRed modificado / base 1.0: 35
+- LeafGreen US Rev 1: 49
+- Emerald US: 29
+- Ruby US Rev 2: 21
+- Sapphire US Rev 2: 21
+- Crystal US Rev 1: 20
+- Gold US: 25
+- Silver US: 25
+
+VALIDACOES REALIZADAS
+[OK] Identificação CRC e seleção de catálogo correto para todas as nove ROMs.
+[OK] 649 linhas de códigos nos nove catálogos com sintaxe compatível com os formatos selecionados.
+[OK] 274 presets ativados/desativados de forma simulada no núcleo de testes (não comprova efeito in-game).
+[OK] Interface do Chromium: Emerald mostra os 29 presets; busca DEOXYS e ativação lógica do encontro.
+[OK] Núcleo VBA-M real no Chromium: FireRed Rev 1 carregou (CRC32 84EE4776).
+[OK] Núcleo VBA-M real no Chromium: aceitou as 5 linhas Action Replay do preset Rare Candy 1.1.
+[OK] Núcleo VBA-M real no Chromium: Gold carregou e aceitou 0120E2D5.
+[OK] Núcleo VBA-M real no Chromium: Crystal carregou e aceitou 0120B8D5 e 912093D8.
+[OK] Todos os arquivos originais das ROMs e do núcleo copiados byte por byte do pacote anterior.
+[NAO TESTADO] Efeito efetivo de cada preset em uma partida avancada, inclusive pos-batalha ou apos abrir o PC.
+[NAO GARANTIDO] Compatibilidade de códigos com revisões alteradas, especialmente Ruby/Sapphire Rev2 e FireRed modificado.
+
+OBSERVACAO
+Aceitação no motor de cheats significa que VBA-M registrou o código, não que ele alterou a memória pretendida durante a jogada. Por isso os avisos de compatibilidade foram preservados. Faça copia do save .sav antes de cheats de itens, encontro, atravesse paredes ou progresso de historia.
+
+FONTES
+Consulte FONTES-E-CHECAGENS.txt para referencias e links originais das listas investigadas. As fontes podem repetir uns aos outros: somente convergencia literal de codigo nao prova teste independente.
+
+CATÁLOGO DE EMULADORES WEB (20/11/2026)
+
+[OK] O catálogo identifica os 12 emuladores encontrados nos ZIPs.
+[OK] SameBoy carregou um cartucho da biblioteca. gameboy-emu e Snes9x
+abriram cartuchos de teste. O Snes9x exibiu a cor programada no cartucho.
+[OK] PPSSPP, Azahar e Dolphin exibiram seus seletores no Chromium com
+isolamento entre origens ativo.
+[OK] Eden executou o homebrew nx-hbmenu 3.6.1 e apresentou quadros via WebGPU.
+[OK] Eden montou a imagem local de Switch de 6,17 GB em um leitor de
+arquivo no navegador. Esse teste verificou a leitura da imagem.
+[INICIALIZAÇÃO] PCSX2 carregou o WebAssembly, importou OpenPS2BIOS 0.6
+e executou o ciclo de emulação. O teste de imagem com homebrew de PS2
+foi inconclusivo. A compatibilidade com jogos depende da BIOS e do título.
+[OK] O pacote estático foi testado localmente com os cabeçalhos de
+isolamento. Seus arquivos individuais cabem no limite de 25 MiB do Pages.
+
+Os testes usaram o Chromium local. Veja a origem das compilações em
+web/pcsx2/SOURCE.txt e web/eden/SOURCE.txt.
