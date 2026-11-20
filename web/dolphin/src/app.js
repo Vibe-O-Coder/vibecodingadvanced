@@ -5,12 +5,14 @@ import { startMainThreadProfiler } from "./main-profiler.js";
 import { createCausalTelemetry, deepMerge } from "./causal-telemetry.js";
 import {
   CONTROL_LABELS,
+  DEFAULT_KEY_BINDINGS,
+  STANDARD_GAMEPAD_AXES,
+  STANDARD_GAMEPAD_BUTTONS,
   formatControlLabel,
   gamepadInputsEqual,
   inputStateFromPressed,
   mergePressedSets,
   readGamepadInput,
-  resolveKeyboardButton,
   selectPreferredGamepad,
   updatePressedSet
 } from "./input.js";
@@ -249,6 +251,35 @@ wireAspectSelect();
 wireScreenFit();
 wireFileMounting();
 wireTransport();
+const controlKeys = Object.fromEntries(Object.entries(DEFAULT_KEY_BINDINGS).map(([key, id]) => [id, key]));
+const controlPads = Object.fromEntries(Object.entries(STANDARD_GAMEPAD_BUTTONS).map(([index, id]) => [id, [SiteControls.buttonInput(index)]]));
+controlPads.L.push(SiteControls.buttonInput(6));
+controlPads.R.push(SiteControls.buttonInput(7));
+STANDARD_GAMEPAD_AXES.forEach(([negative, positive], index) => {
+  const [lower, upper] = SiteControls.axisInputs(index);
+  controlPads[negative] = [lower];
+  controlPads[positive] = [upper];
+});
+const directions = { UP: '↑', DOWN: '↓', LEFT: '←', RIGHT: '→' };
+const controls = SiteControls.create({
+  id: 'dolphin', button: document.getElementById('configureControls'),
+  actions: CONTROL_LABELS.map(id => {
+    const control = id.match(/^(D|STICK|C_STICK)_(UP|DOWN|LEFT|RIGHT)$/);
+    const labels = { D: 'Direcional', STICK: 'Analógico principal', C_STICK: 'Analógico C' };
+    return {
+      id, key: controlKeys[id], pad: controlPads[id],
+      label: control ? `${labels[control[1]]} ${directions[control[2]]}` : formatControlLabel(id),
+    };
+  }),
+  clearInput() {
+    keyboardPressed.clear();
+    touchPressed.clear();
+    gamepadPressed.clear();
+    lastGamepadInput = gamepadInputState = null;
+    syncInput('Keyboard');
+  },
+  focusGame: () => elements.screen.focus({ preventScroll: true }),
+});
 wireKeyboard();
 wireTouchControls();
 wireGamepadPolling();
@@ -947,11 +978,12 @@ function renderRootEntries(entries) {
 
 function wireKeyboard() {
   document.addEventListener("keydown", (event) => {
-    if (event.repeat) {
+    if (event.repeat || controls.editing || event.ctrlKey || event.metaKey || event.altKey ||
+        event.target.closest?.('input, select, textarea, [contenteditable="true"]')) {
       return;
     }
 
-    const button = resolveKeyboardButton(event.code);
+    const button = controls.keyAction(event.code);
     if (!button) {
       return;
     }
@@ -964,7 +996,7 @@ function wireKeyboard() {
   });
 
   document.addEventListener("keyup", (event) => {
-    const button = resolveKeyboardButton(event.code);
+    const button = controls.keyAction(event.code);
     if (!button) {
       return;
     }
@@ -1095,7 +1127,7 @@ function wireGamepadPolling() {
       }
     }
 
-    const nextGamepadInput = firstPad ? readGamepadInput(firstPad) : null;
+    const nextGamepadInput = firstPad && !controls.editing ? readGamepadInput(firstPad, undefined, undefined, controls) : null;
     if (!legacyGamepadPoll && gamepadInputsEqual(lastGamepadInput, nextGamepadInput)) {
       return;
     }

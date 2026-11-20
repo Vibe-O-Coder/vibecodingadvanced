@@ -30,11 +30,33 @@ const STICK_KEYS = {
 // Standard Gamepad API layout mapped by position, Nintendo style (bottom = B, right = A, ...).
 const PAD_BUTTONS = { 0: 0, 1: 8, 2: 1, 3: 9, 4: 10, 5: 11, 6: 12, 7: 13, 8: 2, 9: 3, 12: 4, 13: 5, 14: 6, 15: 7, 16: 14 };
 const PAD_DEADZONE = 0.15;
+const AXES = ['analogLX', 'analogLY', 'analogRX', 'analogRY'];
+const buttonKeys = Object.fromEntries(Object.entries(KEYMAP).map(([key, id]) => [id, key]));
+const buttonPads = Object.fromEntries(Object.entries(PAD_BUTTONS).map(([index, id]) => [id, index]));
+const buttonActions = ['B', 'Y', 'Select', 'Start', 'Cima', 'Baixo', 'Esquerda', 'Direita',
+  'A', 'X', 'L', 'R', 'ZL', 'ZR', 'Home'].map((label, id) => ({
+  id, label, key: buttonKeys[id], pad: [SiteControls.buttonInput(buttonPads[id])],
+}));
+const stickActions = Object.entries(STICK_KEYS).map(([key, [axis, direction]]) => {
+  const index = AXES.indexOf(axis);
+  const arrows = index % 2 ? ['↑', '↓'] : ['←', '→'];
+  return {
+    id: `${axis}:${direction}`, key, axis, direction,
+    label: `${index < 2 ? 'Analógico esquerdo' : 'Analógico direito'} ${arrows[direction > 0 ? 1 : 0]}`,
+    pad: [SiteControls.axisInputs(index)[direction > 0 ? 1 : 0]],
+  };
+});
+const stickDirections = new Map(stickActions.map(action => [action.id, action]));
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('screen');
 const gameMenu = $('game-menu');
 const touchControls = bindTouchControls($('touch-controls'));
+const controls = SiteControls.create({
+  id: 'azahar', actions: [...buttonActions, ...stickActions],
+  button: [$('setup-controls'), $('game-controls')], clearInput: resetInput,
+  focusGame: () => { if (!$('game-view').hidden) canvas.focus({ preventScroll: true }); },
+});
 const urlParams = new URLSearchParams(location.search);
 // WebGL2 (GPU) everywhere, Safari included; ?sw forces the much slower software renderer.
 const useSw = urlParams.has('sw');
@@ -372,34 +394,32 @@ const keySticks = new Set();
 let padName = '';
 
 function readGamepad() {
-  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-  const pad = [...pads].find((p) => p && p.connected);
+  const [pad] = SiteControls.gamepads();
   if (!pad) {
     padName = '';
     return { buttons: 0, axes: [0, 0, 0, 0] };
   }
   padName = pad.id;
   let buttons = 0;
-  for (const [idx, id] of Object.entries(PAD_BUTTONS)) {
-    const b = pad.buttons[idx];
-    if (b && (b.pressed || b.value > 0.5)) buttons |= 1 << id;
+  for (const { id } of buttonActions) {
+    if (controls.value(pad, id) > .5) buttons |= 1 << id;
   }
-  const axes = [0, 1, 2, 3].map((i) => {
-    const v = pad.axes[i] || 0;
+  const axes = AXES.map((axis) => {
+    const v = controls.value(pad, `${axis}:1`) - controls.value(pad, `${axis}:-1`);
     return Math.abs(v) < PAD_DEADZONE ? 0 : v;
   });
   return { buttons, axes };
 }
 
 function frame() {
-  const acceptingInput = !gameMenu.open && !document.hidden && readI('status') === 2;
+  const acceptingInput = !gameMenu.open && !controls.editing && !document.hidden && readI('status') === 2;
   const pad = acceptingInput ? readGamepad() : { buttons: 0, axes: [0, 0, 0, 0] };
   const touch = touchControls.read();
   writeI('buttons', acceptingInput ? keyButtons | pad.buttons | touch.buttons : 0);
   const key = { analogLX: 0, analogLY: 0, analogRX: 0, analogRY: 0 };
-  for (const code of keySticks) {
-    const [axis, dir] = STICK_KEYS[code];
-    key[axis] += dir;
+  for (const input of keySticks) {
+    const { axis, direction } = stickDirections.get(input);
+    key[axis] += direction;
   }
   const axis = (k, index) => writeI(k, acceptingInput
     ? Math.round(Math.max(-1, Math.min(1, key[k] || touch.axes[index] || pad.axes[index])) * 0x7fff) : 0);
@@ -1032,13 +1052,15 @@ addEventListener('pagehide', () => {
 const isControl = (target) => target instanceof Element &&
   !!target.closest('input, textarea, select, button, summary, a, [contenteditable="true"]');
 addEventListener('keydown', (e) => {
-  if (!memory || gameMenu.open || readI('status') !== 2 || isControl(e.target)) return;
-  if (e.code in KEYMAP) { keyButtons |= 1 << KEYMAP[e.code]; e.preventDefault(); }
-  if (e.code in STICK_KEYS) { keySticks.add(e.code); e.preventDefault(); }
+  if (!memory || gameMenu.open || controls.editing || readI('status') !== 2 || isControl(e.target)) return;
+  const action = controls.keyAction(e.code);
+  if (typeof action === 'number') { keyButtons |= 1 << action; e.preventDefault(); }
+  if (typeof action === 'string') { keySticks.add(action); e.preventDefault(); }
 });
 addEventListener('keyup', (e) => {
-  if (e.code in KEYMAP) { keyButtons &= ~(1 << KEYMAP[e.code]); if (!isControl(e.target)) e.preventDefault(); }
-  if (e.code in STICK_KEYS) { keySticks.delete(e.code); if (!isControl(e.target)) e.preventDefault(); }
+  const action = controls.keyAction(e.code);
+  if (typeof action === 'number') { keyButtons &= ~(1 << action); if (!isControl(e.target)) e.preventDefault(); }
+  if (typeof action === 'string') { keySticks.delete(action); if (!isControl(e.target)) e.preventDefault(); }
 });
 let screenPointer = null;
 function resetInput() {

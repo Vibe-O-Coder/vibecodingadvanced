@@ -5,12 +5,13 @@ const webCores = [
   { id: "sameboy", name: "SameBoy", system: "Game Boy e Game Boy Color", accept: ".gb,.gbc,.sgb", factory: "createSameBoy" },
   { id: "gameboy-emu", name: "gameboy-emu", system: "Game Boy original", accept: ".gb", factory: "createGameBoyEmu" },
   { id: "snes9x", name: "Snes9x", system: "Super Nintendo", accept: ".sfc,.smc", factory: "createSnes9x" },
-  { id: "ppsspp", name: "PPSSPP", system: "PlayStation Portable", frame: "web/ppsspp/index.html" },
+  { id: "ppsspp", name: "PPSSPP", system: "PlayStation Portable", frame: "web/ppsspp/index.html",
+    guide: "Inicie o PPSSPP e abra Configurações → Controles para remapear. Durante o jogo, use Menu e controles." },
   { id: "azahar", name: "Azahar", system: "Nintendo 3DS", frame: "web/azahar/index.html", experimental: true },
   { id: "dolphin", name: "Dolphin", system: "GameCube e Wii", frame: "web/dolphin/index.html", experimental: true },
   {
     id: "pcsx2", name: "PCSX2", system: "PlayStation 2", frame: "web/pcsx2/index.html", experimental: true,
-    guide: "Importe a BIOS do seu PlayStation 2 e escolha uma imagem de disco. A interface do porte está em inglês.",
+    guide: "Importe a BIOS do seu PlayStation 2 e escolha uma imagem de disco. Em Controles, selecione o botão a configurar.",
   },
   {
     id: "eden", name: "Eden", system: "Nintendo Switch", frame: "web/eden/index.html", experimental: true,
@@ -52,6 +53,22 @@ const WEB_KEYS = {
   ArrowRight: 16, ArrowLeft: 32, ArrowUp: 64, ArrowDown: 128,
   KeyW: 256, KeyQ: 512, KeyS: 1024, KeyA: 2048,
 };
+
+function cartridgeControls(snes) {
+  const { axisInputs, buttonInput } = SiteControls;
+  const [left, right] = axisInputs(0), [up, down] = axisInputs(1);
+  const outputs = [
+    [1, "A", "KeyX", snes ? 1 : 0], [2, "B", "KeyZ", snes ? 0 : 1],
+    [4, "Select", "Backspace", 8], [8, "Start", "Enter", 9],
+    [16, "Direita", "ArrowRight", 15, right], [32, "Esquerda", "ArrowLeft", 14, left],
+    [64, "Cima", "ArrowUp", 12, up], [128, "Baixo", "ArrowDown", 13, down],
+  ];
+  if (snes) outputs.push([256, "R", "KeyW", 5], [512, "L", "KeyQ", 4],
+    [1024, "X", "KeyS", 3], [2048, "Y", "KeyA", 2]);
+  return outputs.map(([id, label, key, button, axis]) => ({
+    id, label, key, pad: axis ? [buttonInput(button), axis] : [buttonInput(button)],
+  }));
+}
 
 function coreFactory(config) {
   if (globalThis[config.factory]) return Promise.resolve(globalThis[config.factory]);
@@ -211,19 +228,13 @@ class BrowserPlayer {
   }
 
   input() {
+    if (this.controls.editing) return 0;
     let bits = 0;
-    for (const key of this.keys) bits |= WEB_KEYS[key];
+    for (const key of this.keys) bits |= this.controls.keyAction(key);
     for (const key of this.pointers.values()) bits |= WEB_KEYS[key];
-    let pad;
-    try { pad = Array.from(navigator.getGamepads?.() || []).find(item => item?.connected); } catch { /* API may be disabled. */ }
+    const [pad] = SiteControls.gamepads();
     if (!pad) return bits;
-    const map = this.isSNES ? [2, 1, 2048, 1024] : [1, 2, 0, 0];
-    const bindings = [...map, 512, 256, 0, 0, 4, 8, 0, 0, 64, 128, 32, 16];
-    bindings.forEach((value, index) => { if (pad.buttons[index]?.pressed) bits |= value; });
-    if (pad.axes[0] < -.5) bits |= 32;
-    if (pad.axes[0] > .5) bits |= 16;
-    if (pad.axes[1] < -.5) bits |= 64;
-    if (pad.axes[1] > .5) bits |= 128;
+    for (const { id } of this.actions) if (this.controls.value(pad, id) > .5) bits |= id;
     return bits;
   }
 
@@ -315,14 +326,21 @@ class BrowserPlayer {
         if (game === this.game) await this.load(() => game, bytes);
       } catch (error) { this.message(error.message, true); }
     };
-    get("web-keys").textContent = "Setas · A/B: X/Z · Start: Enter · Select: Backspace" + (this.isSNES ? " · X/Y: S/A · L/R: Q/W" : "");
+    this.actions = cartridgeControls(this.isSNES);
+    const controlsButton = get("web-controls");
+    controlsButton.hidden = false;
+    this.controls = SiteControls.create({
+      id: this.config.id, actions: this.actions, button: controlsButton,
+      clearInput: () => { this.keys.clear(); this.pointers.clear(); },
+      focusGame: () => { if (this.core) this.canvas.focus({ preventScroll: true }); },
+    });
     for (const button of document.querySelectorAll("[data-key]")) {
       button.hidden = button.hasAttribute("data-snes") && !this.isSNES;
       button.onpointerdown = event => { button.setPointerCapture(event.pointerId); this.pointers.set(event.pointerId, button.dataset.key); };
       button.onlostpointercapture = event => this.pointers.delete(event.pointerId);
     }
     window.addEventListener("keydown", event => {
-      if (!this.playing || !WEB_KEYS[event.code] || event.ctrlKey || event.metaKey || event.altKey ||
+      if (!this.playing || this.controls.editing || !this.controls.keyAction(event.code) || event.ctrlKey || event.metaKey || event.altKey ||
           event.target.closest?.("button, input, select, a")) return;
       this.keys.add(event.code);
       event.preventDefault();

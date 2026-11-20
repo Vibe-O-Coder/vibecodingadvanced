@@ -213,6 +213,15 @@ a:hover {
   padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(calc(var(--gutter) - 12px), env(safe-area-inset-right));
 }
 
+.marquee-actions {
+  display: flex;
+  align-items: center;
+}
+
+.marquee-actions a {
+  text-decoration: none;
+}
+
 .theatre {
   display: grid;
   /* The picture gives way to the drawer (whose Log body is capped so the picture keeps

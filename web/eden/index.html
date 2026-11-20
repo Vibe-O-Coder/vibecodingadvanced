@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Eden Web — Nintendo Switch Emulator</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../assets/control-mapping.css">
 </head>
 <body>
   <header>
@@ -136,6 +137,7 @@
           <div class="fullscreen-overlay" id="fullscreen-overlay">
             <div class="fullscreen-overlay-buttons">
               <button type="button" class="btn btn-secondary" id="btn-fullscreen-pause">⏸ Pause</button>
+              <button type="button" class="btn btn-secondary" id="btn-fullscreen-controls">Controles</button>
               <button type="button" class="btn btn-secondary" id="btn-fullscreen-exit">✕ Exit</button>
             </div>
           </div>
@@ -144,6 +146,7 @@
           Canvas 1280×720 — Switch handheld resolution
           <span id="fps"></span>
         </p>
+        <button type="button" id="configure-input" class="btn btn-secondary">Configurar controles</button>
         <section id="boot-help" aria-label="Arquivos exigidos pelo jogo" lang="pt-BR" hidden>
           <p id="boot-help-text" role="status"></p>
           <div class="boot-actions">
@@ -285,19 +288,6 @@
         <button class="btn btn-secondary" id="btn-pause" disabled>⏸ Pause</button>
         <button class="btn btn-success" id="btn-step" disabled title="Not supported by the engine yet">Step Frame</button>
         <button class="btn btn-secondary" id="btn-reset" disabled>⏹ Stop &amp; reload</button>
-        <details class="keymap" open>
-          <summary>⌨ Keymap</summary>
-          <div class="controls-legend">
-            <div><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> Left stick (move)</div>
-            <div><kbd>I</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> Right stick (camera)</div>
-            <div><kbd>A</kbd> <kbd>S</kbd> <kbd>Z</kbd> <kbd>X</kbd> A, B, Y, X</div>
-            <div><kbd>T</kbd><kbd>F</kbd><kbd>G</kbd><kbd>H</kbd> D-Pad</div>
-            <div><kbd>Q</kbd> / <kbd>E</kbd> L / R</div>
-            <div><kbd>1</kbd> / <kbd>3</kbd> ZL / ZR</div>
-            <div><kbd>Enter</kbd> / <kbd>Backspace</kbd> + / −</div>
-            <div>Gamepads work too; drag the on-screen sticks on touch screens.</div>
-          </div>
-        </details>
         <div class="mode-help" style="margin-top:6px;">Restarting a game needs a page reload; the core cannot reboot in place.</div>
       </div>
 
@@ -480,6 +470,7 @@
   </footer>
 
   <script src="layout.js"></script>
+  <script src="../../assets/control-mapping.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

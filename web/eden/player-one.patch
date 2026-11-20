@@ -1,0 +1,12 @@
+diff --git a/src/yuzu_cmd/emscripten_main.cpp b/src/yuzu_cmd/emscripten_main.cpp
+--- a/src/yuzu_cmd/emscripten_main.cpp
++++ b/src/yuzu_cmd/emscripten_main.cpp
+@@ -402,6 +402,6 @@ public:
+-    /// Plugs a Pro Controller into players 2 to 8 (player 1 is always connected).
++    /// Connects or disconnects the selected player's Pro Controller.
+     void SetPlayerConnected(int player, bool connected) {
+-        if (player < 1 || player >= 8) {
++        if (player < 0 || player >= 8) {
+             return;
+         }
+         auto& settings = Settings::values.players.GetValue()[player];

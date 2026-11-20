@@ -17,7 +17,7 @@
 <script src="coi-serviceworker.js"></script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=11b55d97e8ea">
+<link rel="stylesheet" href="style.css?v=11b55d97e8ea-controls">
 <link rel="stylesheet" href="library/disc-library.css?v=11b55d97e8ea">
 <link rel="stylesheet" href="library/console-bar.css">
 <link rel="stylesheet" href="library/console-pads.css">
@@ -33,7 +33,10 @@
 <div class="room" id="room">
 <header class="marquee">
   <h1 class="wordmark"><svg class="mark" aria-hidden="true" focusable="false"><use href="icons.svg?v=11b55d97e8ea#i-mark"/></svg><span class="wm">TabStation<span class="wm-too">Too</span></span></h1>
-  <button type="button" class="btn-quiet" id="about-btn" aria-haspopup="dialog">About</button>
+  <div class="marquee-actions">
+    <a class="btn-quiet" href="#pads">Controles</a>
+    <button type="button" class="btn-quiet" id="about-btn" aria-haspopup="dialog">About</button>
+  </div>
 </header>
 
 <main class="theatre" id="theatre">

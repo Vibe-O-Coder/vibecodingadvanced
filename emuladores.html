@@ -7,9 +7,11 @@
   <title>Emuladores no navegador | VBA Web</title>
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/web-player.css">
+  <link rel="stylesheet" href="assets/control-mapping.css">
   <script defer src="assets/files.js"></script>
   <script defer src="assets/rom-library.js"></script>
   <script defer src="assets/audio.js"></script>
+  <script defer src="assets/control-mapping.js"></script>
   <script defer src="assets/web-player.js"></script>
 </head>
 <body>
@@ -25,6 +27,7 @@
         <div><p class="system-label" id="web-system"></p><h1 id="web-name"></h1></div>
         <div class="web-status">
           <p class="micro" id="web-status" role="status"></p>
+          <button type="button" id="web-controls" hidden>Controles</button>
           <a id="web-standalone" href="#" hidden>Abrir em página inteira</a>
         </div>
       </div>

@@ -312,8 +312,8 @@ updateIdleOverlay();
 function setStartButtonMode(mode) {
   if (mode === "pause") {
     startBtn.disabled = false;
-    startBtn.title = "Pause / PPSSPP menu";
-    startBtn.innerHTML = `${svgIcon("menu")}<span class="btn-lbl"> Menu</span>`;
+    startBtn.title = "Menu do PPSSPP. Remapeie o teclado e o controle físico em Configurações › Controles.";
+    startBtn.innerHTML = `${svgIcon("menu")}<span class="btn-lbl"> Menu e controles</span>`;
   } else if (mode === "loading") {
     startBtn.disabled = true;
     startBtn.title = "Starting PPSSPP";

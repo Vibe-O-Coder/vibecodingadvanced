@@ -18,3 +18,9 @@ dos arquivos de sistema ao selecionar formatos que podem vir criptografados.
 Em eden.js, wgpuDynamicOffsetsView limita a visualização de memória passada
 a setBindGroup em renderização e computação. O Firefox aceita essa faixa
 mesmo quando a memória total ultrapassa 2 GiB. Os offsets são lidos sem cópia.
+
+player-one.patch permite conectar o jogador 1 pela API do núcleo. O player
+liga o primeiro controle virtual ao iniciar o jogo. Para reaplicar a
+alteração à publicação original, o projeto inclui
+source/web-cores/patch-eden-player-one.mjs. Para recompilar, aplique
+player-one.patch às fontes indicadas e execute tools/web/build.sh.

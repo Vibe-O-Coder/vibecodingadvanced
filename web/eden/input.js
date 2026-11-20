@@ -7,6 +7,7 @@
 export const Button = {
   A: 0, B: 1, X: 2, Y: 3, LStick: 4, RStick: 5, L: 6, R: 7, ZL: 8, ZR: 9,
   Plus: 10, Minus: 11, Left: 12, Up: 13, Right: 14, Down: 15, Home: 18, Capture: 19,
+  SL: 16, SR: 17,
 };
 const Stick = { Left: 0, Right: 1 };
 
@@ -40,11 +41,31 @@ const PAD_LAYOUTS = {
 const PAD_DEADZONE = 0.12;
 const MAX_PLAYERS = 8;
 const PREFS_KEY = 'eden-gamepad-prefs';
+const buttonKeys = new Map(Object.entries(KEY_BUTTONS).map(([code, button]) => [button, code]));
+const buttonLabels = {
+  LStick: 'Clique no analógico esquerdo', RStick: 'Clique no analógico direito',
+  Plus: '+', Minus: '−', Left: 'Direcional ←', Up: 'Direcional ↑', Right: 'Direcional →', Down: 'Direcional ↓',
+  Capture: 'Captura de tela',
+};
+const buttonActions = Object.entries(Button).map(([name, id]) => ({ id, label: buttonLabels[name] || name, key: buttonKeys.get(id) }));
+const stickActions = Object.entries(KEY_STICKS).map(([key, [stick, x, y]]) => {
+  const axis = stick * 2 + (y ? 1 : 0);
+  const direction = x || -y;
+  const arrow = x < 0 ? '←' : x > 0 ? '→' : y > 0 ? '↑' : '↓';
+  return { id: `stick:${axis}:${direction}`, key, stick, x, y,
+    label: `${stick ? 'Analógico direito' : 'Analógico esquerdo'} ${arrow}`,
+    pad: [SiteControls.axisInputs(axis)[direction > 0 ? 1 : 0]],
+  };
+});
+const stickDirections = new Map(stickActions.map(action => [action.id, action]));
+const padDefaults = Object.fromEntries(Object.entries(PAD_LAYOUTS).map(([name, layout]) => [name,
+  new Map(layout.map((id, index) => [id, [SiteControls.buttonInput(index)]])),
+]));
 
 function loadPrefs() {
   const prefs = { layout: 'position', multiplayer: false, rumble: true };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}')); } catch {}
-  if (!(prefs.layout in PAD_LAYOUTS)) prefs.layout = 'position';
+  if (!Object.hasOwn(PAD_LAYOUTS, prefs.layout)) prefs.layout = 'position';
   return prefs;
 }
 
@@ -122,15 +143,35 @@ export function setupInput(getModule) {
 
   // Keyboard. Ignored while typing in a form field.
   const keyboard = source('keyboard');
+  const pointer = source('pointer');
+  const prefs = loadPrefs();
   const heldKeys = new Set();
+  const clearPadSources = () => {
+    for (const name of sources.keys()) if (name.startsWith('gamepad')) sources.delete(name);
+  };
+  const controls = SiteControls.create({
+    id: 'eden', actions: [...buttonActions, ...stickActions],
+    button: [document.getElementById('configure-input'), document.getElementById('btn-fullscreen-controls')],
+    defaultPad: action => padDefaults[prefs.layout].get(action.id),
+    clearInput() {
+      heldKeys.clear();
+      pointer.buttons.clear();
+      pointer.sticks = [[0, 0], [0, 0]];
+      clearPadSources();
+      updateKeyboard();
+    },
+    focusGame: () => { if (getModule()) document.getElementById('canvas').focus({ preventScroll: true }); },
+  });
   function updateKeyboard() {
-    keyboard.buttons = new Set([...heldKeys].map(code => KEY_BUTTONS[code]).filter(b => b !== undefined));
+    keyboard.buttons.clear();
     keyboard.sticks = [[0, 0], [0, 0]];
     for (const code of heldKeys) {
-      const direction = KEY_STICKS[code];
+      const action = controls.keyAction(code);
+      if (typeof action === 'number') keyboard.buttons.add(action);
+      const direction = stickDirections.get(action);
       if (direction) {
-        keyboard.sticks[direction[0]][0] += direction[1];
-        keyboard.sticks[direction[0]][1] += direction[2];
+        keyboard.sticks[direction.stick][0] += direction.x;
+        keyboard.sticks[direction.stick][1] += direction.y;
       }
     }
     flush();
@@ -138,8 +179,8 @@ export function setupInput(getModule) {
   const isTyping = target => target instanceof HTMLElement &&
     (target.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName));
   window.addEventListener('keydown', e => {
-    if (e.altKey || e.ctrlKey || e.metaKey || isTyping(e.target)) return;
-    if (!(e.code in KEY_BUTTONS) && !(e.code in KEY_STICKS)) return;
+    if (controls.editing || e.altKey || e.ctrlKey || e.metaKey || isTyping(e.target)) return;
+    if (controls.keyAction(e.code) === undefined) return;
     e.preventDefault();
     if (!e.repeat) { heldKeys.add(e.code); updateKeyboard(); }
   });
@@ -149,7 +190,6 @@ export function setupInput(getModule) {
   window.addEventListener('blur', () => { heldKeys.clear(); updateKeyboard(); });
 
   // On-screen buttons: press while a pointer is down on them.
-  const pointer = source('pointer');
   for (const [button, selector] of Object.entries(BUTTON_SELECTORS)) {
     const element = document.querySelector(selector);
     if (!element) continue;
@@ -162,6 +202,7 @@ export function setupInput(getModule) {
     });
     element.addEventListener('pointerup', release);
     element.addEventListener('pointercancel', release);
+    element.addEventListener('lostpointercapture', release);
   }
   // On-screen sticks: drag from the stick's centre.
   STICK_SELECTORS.forEach((selector, stick) => {
@@ -185,13 +226,13 @@ export function setupInput(getModule) {
     element.addEventListener('pointermove', move);
     element.addEventListener('pointerup', release);
     element.addEventListener('pointercancel', release);
+    element.addEventListener('lostpointercapture', release);
     element.style.touchAction = 'none';
   });
 
   // Gamepads are polled; the API has no change events for buttons or axes. Polling follows the
   // display while the tab is visible and falls back to a timer when it is hidden (the game keeps
   // running, for example in picture-in-picture).
-  const prefs = loadPrefs();
   const savePrefs = () => { try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {} };
   const listeners = new Set();
   const rumbleSent = new Map();
@@ -201,23 +242,20 @@ export function setupInput(getModule) {
   const padPlayer = slot => (prefs.multiplayer ? Math.min(slot, MAX_PLAYERS - 1) : 0);
 
   function gamepads() {
-    return typeof navigator.getGamepads === 'function' ? [...navigator.getGamepads()].filter(Boolean) : [];
+    return SiteControls.gamepads();
   }
 
   function poll() {
     const pads = gamepads();
-    for (const name of [...sources.keys()]) {
-      if (name.startsWith('gamepad')) sources.delete(name);
-    }
-    const layout = PAD_LAYOUTS[prefs.layout];
-    pads.forEach((gamepad, slot) => {
+    clearPadSources();
+    if (!controls.editing) pads.forEach((gamepad, slot) => {
       const pad = source(`gamepad${gamepad.index}`, padPlayer(slot));
-      gamepad.buttons.forEach((state, index) => {
-        if ((state.pressed || state.value > 0.5) && layout[index] !== undefined) pad.buttons.add(layout[index]);
-      });
-      const [lx = 0, ly = 0, rx = 0, ry = 0] = gamepad.axes;
-      pad.sticks[0] = [axis(lx), -axis(ly)];
-      pad.sticks[1] = [axis(rx), -axis(ry)];
+      for (const { id } of buttonActions) if (controls.value(gamepad, id) > .5) pad.buttons.add(id);
+      for (const { id, stick, x, y } of stickActions) {
+        const value = axis(controls.value(gamepad, id));
+        pad.sticks[stick][0] += value * x;
+        pad.sticks[stick][1] += value * y;
+      }
     });
     flush();
     playRumble(pads);

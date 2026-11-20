@@ -58,6 +58,19 @@ inicial e fica fora dessa contagem.
 
 Consulte source/web-cores/README.txt para as versões, fontes e licenças.
 
+CONFIGURAR CONTROLES
+
+No Eden, SameBoy, gameboy-emu, Snes9x, Azahar e Dolphin, abra Controles
+ou Configurar controles antes de carregar um jogo ou durante a partida.
+Selecione o comando, pressione uma tecla ou escolha o controle físico e
+pressione um botão ou mova um analógico. As mudanças entram em vigor ao
+fechar o painel e são salvas neste navegador. Cada emulador guarda seu
+mapeamento de teclado e um perfil para cada modelo de controle detectado.
+
+No VBA Web, abra Controles na página principal. No PCSX2, abra Controles e
+selecione os botões do controle na tela. No PPSSPP, use Menu e controles
+durante o jogo e abra Configurações → Controles para remapear.
+
 PUBLICAR NO CLOUDFLARE PAGES
 
 Envie a pasta dist ao Cloudflare Pages pelo upload de arquivos estáticos.

@@ -6,6 +6,7 @@
     <title>wasm-dolphin</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="./src/styles.css">
+    <link rel="stylesheet" href="../../assets/control-mapping.css">
   </head>
   <body>
     <div class="app-shell">
@@ -19,6 +20,7 @@
         </div>
         <div class="topbar-actions">
           <span class="status-pill" id="statusPill">Booting</span>
+          <button id="configureControls" type="button">Controles</button>
           <button class="icon-button" id="overlayToggle" type="button" title="Toggle FPS overlay" aria-pressed="true">FPS</button>
           <button class="icon-button" id="debugToggle" type="button" title="Toggle diagnostics" aria-expanded="false" aria-controls="debugPanel">DBG</button>
           <button class="icon-button tip" id="panelToggle" type="button"
@@ -397,6 +399,7 @@
                             </main>
                             </div>
                             
+                            <script src="../../assets/control-mapping.js"></script>
                             <script type="module" src="./src/bootstrap.js"></script>
                             </body>
                             </html>

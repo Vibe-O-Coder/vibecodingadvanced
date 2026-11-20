@@ -10,6 +10,7 @@
 <meta name="format-detection" content="telephone=no">
 <title>Azahar Web</title>
 <link rel="stylesheet" href="./gaemboy3ds-ui.css?v=26">
+<link rel="stylesheet" href="../../assets/control-mapping.css">
 </head>
 <body>
 <main>
@@ -19,6 +20,7 @@
 <div class="selection-actions">
   <button id="pick" type="button">Abrir jogo…</button><input id="file" type="file">
   <button id="lib-pick" type="button" class="alt">Escolher pasta de jogos…</button><input id="lib-dir" type="file" webkitdirectory multiple>
+  <button id="setup-controls" type="button" class="alt">Controles</button>
 </div>
 <section id="library" aria-label="Libreria giochi" hidden>
   <h2>Libreria</h2>
@@ -39,6 +41,7 @@
 <section id="game-view" aria-label="Gioco" hidden>
   <header class="game-header">
     <h1 id="game-title">Gioco</h1>
+    <button id="game-controls" type="button" class="alt">Controles</button>
     <button id="open-menu" type="button" class="alt" aria-haspopup="dialog" aria-controls="game-menu">Menu</button>
   </header>
   <div class="stage">
@@ -181,6 +184,7 @@
     sessionStorage.removeItem('coi-reload');
   }
 </script>
-<script type="module" src="./gaemboy3ds-page.js?v=26"></script>
+<script src="../../assets/control-mapping.js"></script>
+<script type="module" src="./gaemboy3ds-page.js?v=27"></script>
 </body>
 </html>

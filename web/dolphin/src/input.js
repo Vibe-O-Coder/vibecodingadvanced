@@ -67,7 +67,7 @@ export const DEFAULT_KEY_BINDINGS = Object.freeze({
   KeyL: "C_STICK_RIGHT"
 });
 
-const STANDARD_GAMEPAD_BUTTONS = Object.freeze({
+export const STANDARD_GAMEPAD_BUTTONS = Object.freeze({
   0: "A",
   1: "B",
   2: "X",
@@ -81,6 +81,12 @@ const STANDARD_GAMEPAD_BUTTONS = Object.freeze({
   14: "D_LEFT",
   15: "D_RIGHT"
 });
+const standardGamepadButtons = Object.entries(STANDARD_GAMEPAD_BUTTONS);
+
+export const STANDARD_GAMEPAD_AXES = Object.freeze([
+  ["STICK_LEFT", "STICK_RIGHT"], ["STICK_UP", "STICK_DOWN"],
+  ["C_STICK_LEFT", "C_STICK_RIGHT"], ["C_STICK_UP", "C_STICK_DOWN"],
+]);
 
 export const DEFAULT_PAD_STATE = Object.freeze({
   mask: 0,
@@ -207,7 +213,8 @@ export function pressedFromGamepad(
 export function readGamepadInput(
   gamepad,
   digitalThreshold = DEFAULT_GAMEPAD_DIGITAL_DEADZONE,
-  analogDeadzone = DEFAULT_GAMEPAD_ANALOG_DEADZONE
+  analogDeadzone = DEFAULT_GAMEPAD_ANALOG_DEADZONE,
+  bindings
 ) {
   const pressed = new Set();
   const state = { ...DEFAULT_PAD_STATE };
@@ -216,16 +223,20 @@ export function readGamepadInput(
     return { pressed, state };
   }
 
-  for (const [index, button] of Object.entries(STANDARD_GAMEPAD_BUTTONS)) {
-    const padButton = gamepad.buttons[Number(index)];
-    if (padButton?.pressed) {
+  const custom = (id) => bindings?.overrideValue(gamepad, id);
+  const pressedButton = (id, index) => {
+    const value = custom(id);
+    return value === undefined ? gamepad.buttons[index]?.pressed : value > 0.5;
+  };
+  for (const [index, button] of standardGamepadButtons) {
+    if (pressedButton(button, Number(index))) {
       pressed.add(button);
       state.mask |= BUTTONS[button] ?? 0;
     }
   }
 
-  const leftTrigger = gamepad.buttons[6]?.value ?? (gamepad.buttons[4]?.pressed ? 1 : 0);
-  const rightTrigger = gamepad.buttons[7]?.value ?? (gamepad.buttons[5]?.pressed ? 1 : 0);
+  const leftTrigger = custom("L") ?? gamepad.buttons[6]?.value ?? (gamepad.buttons[4]?.pressed ? 1 : 0);
+  const rightTrigger = custom("R") ?? gamepad.buttons[7]?.value ?? (gamepad.buttons[5]?.pressed ? 1 : 0);
   state.triggerLeft = unitToByte(leftTrigger);
   state.triggerRight = unitToByte(rightTrigger);
   if (state.triggerLeft >= 0x80) {
@@ -237,10 +248,13 @@ export function readGamepadInput(
     state.mask |= BUTTONS.R;
   }
 
-  if (gamepad.buttons[0]?.pressed) state.analogA = 0xff;
-  if (gamepad.buttons[1]?.pressed) state.analogB = 0xff;
+  if (pressedButton("A", 0)) state.analogA = 0xff;
+  if (pressedButton("B", 1)) state.analogB = 0xff;
 
-  const [leftX = 0, leftY = 0, rightX = 0, rightY = 0] = gamepad.axes;
+  const [leftX, leftY, rightX, rightY] = STANDARD_GAMEPAD_AXES.map(([negative, positive], index) => {
+    const value = gamepad.axes[index] || 0;
+    return (custom(positive) ?? Math.max(0, value)) - (custom(negative) ?? Math.max(0, -value));
+  });
   state.stickX = axisToPadByte(leftX, false, analogDeadzone);
   state.stickY = axisToPadByte(leftY, true, analogDeadzone);
   state.cStickX = axisToPadByte(rightX, false, analogDeadzone);

@@ -61,5 +61,19 @@ foi inconclusivo. A compatibilidade com jogos depende da BIOS e do título.
 [OK] O pacote estático foi testado localmente com os cabeçalhos de
 isolamento. Seus arquivos individuais cabem no limite de 25 MiB do Pages.
 
-Os testes usaram o Chromium local. Veja a origem das compilações em
+Veja a origem das compilações em
 web/pcsx2/SOURCE.txt e web/eden/SOURCE.txt.
+
+REMAPEAMENTO DE CONTROLES (20/11/2026)
+
+[OK] No Chrome, Kirby and the Forgotten Land no Eden Wasm JIT avançou
+até a abertura com uma tecla remapeada, o Joy-Con na tela e botões de
+controles Xbox e DualShock simulados pela API de gamepads do navegador.
+[OK] Um cartucho de teste do gameboy-emu mudou a imagem ao receber a tecla,
+o botão e o eixo remapeados durante a partida. Os perfis ficaram separados
+por modelo de controle e foram recuperados após recarregar a página.
+[OK] SameBoy, Snes9x, Azahar e Dolphin abriram o editor e salvaram os novos
+mapeamentos. Os menus de controles do VBA Web, PCSX2 e PPSSPP abriram.
+[OK] No Firefox 160.0.1, o Eden reconheceu a nova tecla e continuou a
+executar a ROM de Kirby. A captura no perfil de teste do Firefox ficou
+escura. A imagem dos menus e da abertura foi verificada no Chrome.

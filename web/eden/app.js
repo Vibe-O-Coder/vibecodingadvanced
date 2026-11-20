@@ -850,6 +850,7 @@ async function loadFile(file, openWithoutKeys) {
       loader.setPhase('boot');
       diagnostics.stage('boot');
 
+      edenModule._eden_set_player_connected?.(0, 1);
       if (edenModule.ccall('eden_boot', 'number', ['string'], [path]) !== 0) {
         throw new Error('eden_boot rejected the request');
       }
