@@ -1,0 +1,400 @@
+<!doctype html>
+<html data-bundled-roms="on" lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="VisualBoyAdvance-M no navegador. Carregue cartuchos Game Boy e gerencie seus saves neste dispositivo.">
+  <meta name="theme-color" content="#111918">
+  <title>VBA-M | Vibe Arcade</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <script defer src="assets/vbam.js"></script>
+  <script defer src="assets/files.js"></script>
+  <script defer src="assets/rom-library.js"></script>
+  <script defer src="assets/audio.js"></script>
+  <script defer src="assets/emulator.js"></script>
+  <script defer src="assets/pokemon-cheats.js"></script>
+  <script defer src="assets/debugger.js"></script>
+  <script defer src="assets/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html" aria-label="Voltar ao catálogo">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>VBA <b>Web</b></span>
+      </a>
+      <nav aria-label="Opções do emulador">
+        <a class="nav-catalog-link" href="index.html">Início</a>
+        <button type="button" data-dialog="library" data-bundled-only>Biblioteca <span class="nav-count">9</span></button>
+        <button type="button" data-dialog="controls">Controles</button>
+        <button type="button" data-dialog="options">Configurações</button>
+        <a class="nav-catalog-link" href="index.html#emuladores">Catálogo de emuladores</a>
+        <button type="button" data-dialog="tools" data-game>Ferramentas</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="console" id="console" aria-label="Emulação">
+      <div class="console-head">
+        <span id="system-label" class="system-label">GAME BOY ADVANCE</span>
+        <span id="play-status" class="play-status" data-status="idle"><i aria-hidden="true"></i><span>Aguardando ROM</span></span>
+      </div>
+
+      <div class="screen-bay" id="screen-bay">
+        <div class="screen" id="screen">
+          <canvas id="display" width="240" height="160" aria-label="Tela do jogo" tabindex="0" hidden></canvas>
+          <div class="welcome" id="welcome">
+            <div class="cartridge-icon" aria-hidden="true"><i></i></div>
+            <h1>Carregue um cartucho</h1>
+            <p>Abra um cartucho de Game Boy Advance, Game Boy ou Game Boy Color.</p>
+            <div class="welcome-actions">
+              <button type="button" class="primary" data-dialog="library" data-bundled-only>Escolher jogo</button>
+              <button type="button" data-action="rom">Importar ROM</button>
+            </div>
+          </div>
+          <div class="drop-message" id="drop-message" hidden>Solte para abrir ROM ou save</div>
+        </div>
+      </div>
+
+      <div class="transport">
+        <div class="transport-left">
+          <button type="button" class="primary" id="pause" data-action="pause" data-game>Pausar</button>
+          <button type="button" data-action="step" data-game title="Avançar um quadro">1 quadro</button>
+          <button type="button" data-action="rewind" id="rewind" data-game title="Voltar ao quadro salvo anterior">Rebobinar</button>
+        </div>
+        <div class="transport-right">
+          <label class="speed-control"><span>Velocidade</span>
+            <select id="speed" data-pref="speed" aria-label="Velocidade da emulação">
+              <option value="0.25">0,25×</option><option value="0.5">0,5×</option>
+              <option value="1" selected>1×</option><option value="1.5">1,5×</option>
+              <option value="2">2×</option><option value="3">3×</option><option value="4">4×</option>
+              <option value="6">6×</option><option value="8">8×</option><option value="10">10×</option>
+            </select>
+          </label>
+          <button type="button" id="mute" data-action="mute" aria-pressed="false">Som</button>
+          <button type="button" data-action="fullscreen" data-game>Tela cheia</button>
+        </div>
+      </div>
+      <div class="touch-controls" id="touch-controls" aria-label="Controles de toque">
+        <div class="shoulders"><button type="button" data-pad="L">L</button><button type="button" data-pad="R">R</button></div>
+        <div class="touch-middle">
+          <div class="dpad">
+            <button type="button" data-pad="Up" aria-label="Cima">▲</button>
+            <button type="button" data-pad="Left" aria-label="Esquerda">◀</button>
+            <button type="button" data-pad="Right" aria-label="Direita">▶</button>
+            <button type="button" data-pad="Down" aria-label="Baixo">▼</button>
+          </div>
+          <div class="face-keys"><button type="button" data-pad="B">B</button><button type="button" data-pad="A">A</button></div>
+        </div>
+        <div class="touch-bottom"><button type="button" data-pad="Select">Select</button><button type="button" data-pad="Start">Start</button></div>
+      </div>
+      <div class="console-foot">
+        <span id="video-stats">240 × 160</span>
+        <span id="speed-stats">VBA-M 2.2.3</span>
+      </div>
+    </section>
+
+    <aside class="sidebar" aria-label="Biblioteca, cartucho, save e estados">
+      <section class="card library-summary" data-bundled-only>
+        <div class="card-heading"><h2>Biblioteca de jogos</h2><span class="library-count">9 jogos</span></div>
+        <p class="micro">6 jogos de GBA e 3 de Game Boy Color, incluídos neste pacote.</p>
+        <button type="button" class="primary library-open" data-dialog="library">Selecionar jogo</button>
+      </section>
+      <section class="card">
+        <h2>Cartucho</h2>
+        <p class="game-title" id="game-title">Nenhuma ROM aberta</p>
+        <p class="micro" id="game-meta">GBA, GB e GBC. Aceita ZIP e GZIP.</p>
+        <div class="actions">
+          <button type="button" data-action="rom">Abrir ROM</button>
+          <button type="button" data-action="reset" data-game>Reiniciar</button>
+          <button type="button" data-action="close" data-game>Fechar</button>
+          <button type="button" class="quick-cheats" data-quick-cheats data-game>Cheats prontos</button>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-heading"><h2>Save do cartucho</h2><span class="micro" id="save-status" role="status">Local</span></div>
+        <div class="button-grid">
+          <button type="button" data-action="import-save" data-game>Importar save</button>
+          <button type="button" data-action="export-save" data-game>Baixar .sav</button>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-heading"><h2>Save states</h2><span class="micro">10 slots</span></div>
+        <div id="slots" class="slots" role="group" aria-label="Slots de save state"></div>
+        <p class="micro slot-status" id="slot-status">Slot 1 vazio</p>
+        <div class="button-grid">
+          <button type="button" class="primary" data-action="save-state" data-game>Salvar estado</button>
+          <button type="button" data-action="load-state" id="load-state" data-game>Carregar estado</button>
+          <button type="button" data-action="import-state" data-game>Importar .sgm</button>
+          <button type="button" data-action="export-state" id="export-state" data-game>Baixar .sgm</button>
+        </div>
+      </section>
+    </aside>
+
+    <footer class="footer">
+      <span>Seus arquivos e saves ficam neste navegador.</span>
+      <a href="README.txt">Manual e código-fonte</a>
+    </footer>
+  </main>
+
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <input id="file-picker" type="file" hidden>
+
+  <dialog id="emulators" aria-labelledby="emulators-title">
+    <header class="dialog-head"><h2 id="emulators-title">Central de Emuladores</h2><button type="button" data-dismiss>Fechar</button></header>
+    <div class="dialog-body">
+      <p class="hint">Escolha um dos emuladores integrados e carregue um jogo no navegador.</p>
+      <a class="web-link-button" href="index.html#emuladores">Ver emuladores</a>
+      <p class="hint" data-bundled-only>A Central de Emuladores do Windows também está no pacote.</p>
+      <a href="README.txt" target="_blank" rel="noopener">Ver o manual</a>
+    </div>
+  </dialog>
+
+  <dialog id="controls" aria-labelledby="controls-title">
+    <header class="dialog-head"><h2 id="controls-title">Controles</h2><button type="button" data-dismiss>Fechar</button></header>
+    <div class="dialog-body">
+      <p class="hint">Selecione uma tecla ou um botão na tabela e pressione o novo comando. Controles USB e Bluetooth são aceitos.</p>
+      <div class="bindings" id="bindings"></div>
+      <button type="button" data-action="default-keys">Restaurar teclas padrão</button>
+      <h3>Atalhos durante o jogo</h3>
+      <dl class="shortcuts">
+        <dt><kbd>P</kbd></dt><dd>Pausar ou continuar</dd>
+        <dt><kbd>Q</kbd> ou <kbd>Espaço</kbd></dt><dd>Segurar para acelerar (os dois atalhos funcionam juntos)</dd>
+        <dt><kbd>F</kbd></dt><dd>Tela cheia</dd>
+        <dt><kbd>C</kbd></dt><dd>Captura PNG</dd>
+        <dt><kbd>,</kbd></dt><dd>Avançar um quadro</dd>
+        <dt><kbd>R</kbd></dt><dd>Segurar para rebobinar</dd>
+        <dt><kbd>F1</kbd> a <kbd>F10</kbd></dt><dd>Carregar o slot correspondente</dd>
+        <dt><kbd>Shift</kbd> + <kbd>F1</kbd> a <kbd>F10</kbd></dt><dd>Salvar no slot correspondente</dd>
+      </dl>
+    </div>
+  </dialog>
+
+  <dialog id="options" aria-labelledby="options-title">
+    <header class="dialog-head"><h2 id="options-title">Configurações</h2><button type="button" data-dismiss>Fechar</button></header>
+    <div class="dialog-body options">
+      <details open>
+        <summary>Vídeo</summary>
+        <div class="field-grid">
+          <label>Tamanho da tela<select data-pref="scale">
+            <option value="fit">Ajustar à área</option><option value="integer">Escala inteira</option>
+            <option value="1">1×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option><option value="5">5×</option><option value="6">6×</option>
+          </select></label>
+          <label>Filtro<select data-pref="filter">
+            <option value="0">Píxeis nítidos</option><option value="-1">Suavização do navegador</option>
+            <option value="1">2xSaI</option><option value="2">Super 2xSaI</option><option value="3">Super Eagle</option>
+            <option value="4">AdvanceMAME 2×</option><option value="5">Simple 2×</option>
+            <option value="6">Bilinear</option><option value="7">Bilinear Plus</option>
+            <option value="8">Pixelate</option><option value="9">Scanlines</option><option value="10">Modo TV</option>
+            <option value="11">HQ2×</option><option value="12">LQ2×</option><option value="13">xBRZ 2×</option>
+            <option value="14">xBRZ 3×</option><option value="15">xBRZ 4×</option><option value="16">xBRZ 5×</option><option value="17">xBRZ 6×</option>
+          </select></label>
+          <label>Entre quadros<select data-pref="blend"><option value="0">Desativado</option><option value="1">Fusão inteligente</option><option value="2">Desfoque de movimento</option></select></label>
+          <label>Correção de cor<select data-pref="color"><option value="0">Original</option><option value="1">LCD</option><option value="2">LCD escuro</option></select></label>
+          <label>Paleta monocromática<select data-pref="mono"><option value="0">Cinza</option><option value="1">Verde</option><option value="2">Azul</option><option value="3">Sépia</option></select></label>
+          <label>Pular quadros<select data-pref="frameskip">
+            <option value="0">Nenhum</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          </select></label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" data-layer="256"> BG0</label><label><input type="checkbox" data-layer="512"> BG1</label>
+          <label><input type="checkbox" data-layer="1024"> BG2</label><label><input type="checkbox" data-layer="2048"> BG3</label>
+          <label><input type="checkbox" data-layer="4096"> Sprites</label><label><input type="checkbox" data-layer="8192"> Janela 0</label>
+          <label><input type="checkbox" data-layer="16384"> Janela 1</label><label><input type="checkbox" data-layer="32768"> Janela OBJ</label>
+        </div>
+      </details>
+      <details>
+        <summary>Áudio e entrada</summary>
+        <div class="field-grid">
+          <label>Volume<input type="range" min="0" max="100" value="65" data-pref="volume"></label>
+          <label>Aceleração (Q ou Espaço)<select data-pref="turbo"><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option><option value="6">6×</option><option value="8">8×</option><option value="10">10×</option></select></label>
+          <label>Controles de toque<select data-pref="touch"><option value="auto">Automático</option><option value="on">Sempre visíveis</option><option value="off">Ocultar</option></select></label>
+          <label>Controle conectado<select id="gamepad" data-pref="gamepad"><option value="-1">Primeiro disponível</option></select></label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" data-pref="turboA"> Repetir A ao segurar</label>
+          <label><input type="checkbox" data-pref="turboB"> Repetir B ao segurar</label>
+        </div>
+        <p class="hint">Canais de áudio</p>
+        <div class="checks">
+          <label><input type="checkbox" data-channel="1"> Pulso 1</label><label><input type="checkbox" data-channel="2"> Pulso 2</label>
+          <label><input type="checkbox" data-channel="4"> Onda</label><label><input type="checkbox" data-channel="8"> Ruído</label>
+          <label><input type="checkbox" data-channel="256"> PCM A</label><label><input type="checkbox" data-channel="512"> PCM B</label>
+        </div>
+      </details>
+      <details>
+        <summary>Emulação e saves</summary>
+        <div class="checks">
+          <label><input type="checkbox" data-pref="autoPause"> Pausar ao trocar de aba</label>
+          <label><input type="checkbox" data-pref="rewind"> Manter histórico para rebobinar</label>
+          <label><input type="checkbox" data-pref="stateBattery"> Restaurar save de cartucho ao carregar um estado</label>
+          <label><input type="checkbox" data-pref="printer"> Conectar impressora GB</label>
+          <label><input type="checkbox" data-pref="agbPrint"> Registrar mensagens AGBPrint</label>
+          <label><input type="checkbox" data-pref="cheats"> Ligar trapaças</label>
+        </div>
+        <p class="hint">As opções abaixo passam a valer na próxima abertura da ROM.</p>
+        <div class="field-grid">
+          <label>Hardware GB<select data-pref="board"><option value="0">Automático</option><option value="1">Game Boy Color</option><option value="2">Super Game Boy</option><option value="3">Game Boy</option><option value="4">Game Boy Advance</option><option value="5">Super Game Boy 2</option></select></label>
+          <label>Tipo de save GBA<select data-pref="saveType"><option value="0">Automático</option><option value="1">EEPROM</option><option value="2">SRAM</option><option value="3">Flash</option><option value="4">EEPROM + sensor</option><option value="5">Sem save</option></select></label>
+          <label>Capacidade Flash<select data-pref="flash"><option value="0">Automática</option><option value="64">64 KiB</option><option value="128">128 KiB</option></select></label>
+          <label>Relógio (RTC)<select data-pref="rtc"><option value="-1">Automático</option><option value="0">Desativado</option><option value="1">Ativado</option></select></label>
+          <label>Espelhamento de ROM<select data-pref="mirror"><option value="-1">Automático</option><option value="0">Desativado</option><option value="1">Ativado</option></select></label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" data-pref="border"> Borda Super Game Boy</label>
+          <label><input type="checkbox" data-pref="skipBios"> Pular animação da BIOS</label>
+        </div>
+        <div class="actions"><button type="button" data-action="bios">Carregar BIOS</button><button type="button" data-action="clear-bios">Remover BIOS</button></div>
+        <p class="micro" id="bios-status">BIOS interna</p>
+      </details>
+    </div>
+  </dialog>
+
+  <dialog id="tools" class="wide-dialog" aria-labelledby="tools-title">
+    <header class="dialog-head"><h2 id="tools-title">Ferramentas</h2><button type="button" data-dismiss>Fechar</button></header>
+    <div class="dialog-body">
+      <nav class="tabs" aria-label="Ferramentas do cartucho">
+        <button type="button" data-tab="capture" aria-pressed="true">Captura</button>
+        <button type="button" data-tab="cheat" aria-pressed="false">Trapaças</button>
+        <button type="button" data-tab="inspect" aria-pressed="false">Depuração</button>
+        <button type="button" data-tab="cart" aria-pressed="false">Cartucho</button>
+      </nav>
+      <section data-panel="capture" aria-label="Captura">
+        <h3>Capturas de tela</h3>
+        <div class="actions"><button type="button" data-action="png">Baixar PNG</button><button type="button" data-action="bmp">Baixar BMP</button></div>
+        <h3>Gravação</h3>
+        <div class="actions"><button type="button" id="record-video" data-action="video">Gravar vídeo</button><button type="button" id="record-audio" data-action="audio">Gravar WAV</button></div>
+        <p class="micro" id="record-status" aria-live="polite"></p>
+        <h3>Impressora Game Boy</h3>
+        <p class="hint">Ligue a impressora nas configurações e imprima em um jogo compatível.</p>
+        <button type="button" id="print-button" data-action="print" disabled>Baixar última impressão</button>
+      </section>
+      <section data-panel="cheat" aria-label="Trapaças" hidden>
+        <div class="pokemon-presets" id="pokemon-presets" hidden>
+          <div class="preset-heading">
+            <div><h3>Cheats integrados de Pokémon</h3><p class="micro" id="pokemon-cheat-version"></p></div>
+            <span class="micro" id="pokemon-preset-count"></span>
+          </div>
+          <p class="hint">Clique em Ativar para ligar os códigos. As referências são documentais; aceitar um código não comprova seu efeito. Os presets são salvos por cartucho. Faça backup do .sav antes de usar cheats que alteram a história, a equipe ou os itens.</p>
+          <div class="preset-filters">
+            <label>Procurar cheat<input id="preset-search" type="search" placeholder="EXP, itens, dinheiro, shiny..." autocomplete="off"></label>
+            <label>Categoria<select id="preset-category"><option value="all">Todas</option><option>Itens</option><option>Experiência</option><option>Encontros</option><option>Batalhas</option><option>Recursos</option><option>Exploração</option><option>Criação</option><option>Pokédex</option><option>Minigames</option></select></label>
+          </div>
+          <div class="preset-species">
+            <strong>Encontrar um Pokémon específico</strong>
+            <div class="preset-filters">
+              <label>Buscar nome ou ID<input id="pokemon-species-search" type="search" placeholder="Pikachu, Mewtwo, 386..." autocomplete="off"></label>
+              <label>Pokémon<select id="pokemon-species-select" aria-label="Pokémon para encontrar"></select></label>
+            </div>
+            <p class="micro" id="pokemon-species-help"></p>
+          </div>
+          <div class="preset-grid" id="preset-grid"></div>
+          <p class="hint" id="pokemon-preset-warning">Use um cheat por efeito e desligue os de encontro e EXP após o uso. Alguns códigos podem variar de acordo com a revisão do jogo.</p>
+          <hr class="preset-divider">
+          <h3>Adicionar código manualmente</h3>
+        </div>
+        <form id="cheat-form">
+          <div class="field-grid">
+            <label>Formato<select id="cheat-type"></select></label>
+            <label>Descrição<input type="text" id="cheat-name" maxlength="31" placeholder="Opcional"></label>
+          </div>
+          <label>Códigos <textarea id="cheat-code" rows="3" maxlength="4096" spellcheck="false" required placeholder="Um código por linha"></textarea></label>
+          <button type="submit" class="primary">Adicionar códigos</button>
+        </form>
+        <div class="actions">
+          <button type="button" data-action="import-cheats">Importar lista .clt</button>
+          <button type="button" data-action="export-cheats">Baixar lista .clt</button>
+        </div>
+        <ul class="cheat-list" id="cheat-list"></ul>
+        <details>
+          <summary>Encontrar valores na RAM (GBA)</summary>
+          <div class="field-grid">
+            <label>Tamanho<select id="search-width"><option value="1">8 bits</option><option value="2">16 bits</option><option value="4">32 bits</option></select></label>
+            <label>Comparação<select id="search-mode"><option value="eq">Igual a</option><option value="ne">Diferente de</option><option value="changed">Mudou</option><option value="same">Não mudou</option><option value="up">Aumentou</option><option value="down">Diminuiu</option></select></label>
+            <label>Valor<input id="search-value" value="0" spellcheck="false"></label>
+          </div>
+          <div class="actions"><button type="button" data-debug="search-start">Capturar RAM</button><button type="button" data-debug="search-filter">Filtrar endereços</button></div>
+          <p class="micro" id="search-count"></p>
+          <pre id="search-results" class="debug-output"></pre>
+        </details>
+      </section>
+      <section data-panel="inspect" aria-label="Depuração" hidden>
+        <div class="actions">
+          <button type="button" data-action="pause" data-game>Pausar / continuar</button>
+          <button type="button" data-action="step" data-game>1 quadro</button>
+          <button type="button" data-debug="instruction">1 instrução</button>
+          <button type="button" data-debug="refresh">Atualizar</button>
+        </div>
+        <div class="field-grid">
+          <label>Visor<select id="debug-view">
+            <option value="register">Registradores e disassembly</option><option value="memory">Memória</option>
+            <option value="io">Registradores de I/O</option><option value="palette">Paletas</option>
+            <option value="tiles">Tiles</option><option value="map">Mapa BG</option><option value="sprites">Sprites e OAM</option>
+          </select></label>
+          <label id="debug-mode-label">Modo<select id="debug-mode"><option value="0">Automático</option><option value="1">ARM</option><option value="2">Thumb</option></select></label>
+          <label id="debug-address-label">Endereço hexadecimal<input id="debug-address" value="02000000" spellcheck="false" maxlength="10"></label>
+          <label id="debug-graphics-label" hidden>Banco ou camada<select id="debug-graphics"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+          <label id="debug-depth-label" hidden>Cores por tile<select id="debug-depth"><option value="4">16 cores (4 bpp)</option><option value="8">256 cores (8 bpp)</option></select></label>
+        </div>
+        <div id="memory-actions" class="field-grid" hidden>
+          <label>Valor a gravar (hex)<input id="poke-value" value="00" maxlength="8" spellcheck="false"></label>
+          <div class="actions"><button type="button" data-debug="poke">Gravar na RAM</button><button type="button" data-debug="dump">Baixar 256 bytes</button></div>
+        </div>
+        <canvas id="debug-canvas" aria-label="Visor gráfico do hardware" hidden></canvas>
+        <pre id="debug-output" class="debug-output" tabindex="0"></pre>
+        <p class="micro" id="agb-log"></p>
+      </section>
+      <section data-panel="cart" aria-label="Ferramentas de cartucho" hidden>
+        <h3>Patch de ROM</h3>
+        <p class="hint">Aplica um patch à ROM aberta e inicia a versão modificada. A versão modificada tem seus próprios saves.</p>
+        <button type="button" data-action="patch">Aplicar IPS, UPS, BPS ou PPF</button>
+        <h3>Arquivos legados</h3>
+        <div class="actions">
+          <button type="button" data-action="import-legacy">Importar SharkPort/GameShark</button>
+          <button type="button" data-action="export-legacy">Baixar SharkPort .sps</button>
+          <button type="button" data-action="import-eeprom">Importar .eep</button>
+          <button type="button" data-action="export-eeprom">Baixar .eep</button>
+        </div>
+        <h3>Sensores do cartucho</h3>
+        <div class="field-grid">
+          <label>Luz solar<input type="range" min="0" max="10" data-pref="sun"></label>
+          <label>Inclinação X<input type="range" min="1897" max="2197" data-pref="tiltX"></label>
+          <label>Inclinação Y<input type="range" min="1897" max="2197" data-pref="tiltY"></label>
+          <label>Giroscópio<input type="range" min="-1800" max="1800" data-pref="gyro"></label>
+        </div>
+      </section>
+    </div>
+  </dialog>
+
+  <dialog id="library" class="wide-dialog" aria-labelledby="library-title">
+    <header class="dialog-head">
+      <div><h2 id="library-title">Biblioteca de jogos</h2><p class="micro">Escolha um cartucho para iniciar</p></div>
+      <button type="button" data-dismiss>Fechar</button>
+    </header>
+    <div class="dialog-body library-dialog-body">
+      <div class="library-filters">
+        <label class="library-search-label" for="library-search">Buscar jogo
+          <input id="library-search" type="search" autocomplete="off" placeholder="Nome ou versão do jogo">
+        </label>
+        <label for="library-filter">Console
+          <select id="library-filter"><option value="all">Todos (9)</option><option value="GBA">Game Boy Advance (6)</option><option value="GBC">Game Boy Color (3)</option></select>
+        </label>
+      </div>
+      <p id="library-loading" class="library-loading" role="status" aria-live="polite" hidden></p>
+      <div id="library-grid" class="library-grid" aria-label="Jogos disponíveis"></div>
+      <p class="hint library-footnote">Salve pelo menu do jogo. Seu progresso é restaurado quando você reabre o mesmo cartucho neste navegador.</p>
+      <button type="button" data-action="rom">Importar ROM do dispositivo</button>
+    </div>
+  </dialog>
+
+  <dialog id="archive-dialog" aria-labelledby="archive-title">
+    <header class="dialog-head"><h2 id="archive-title">Escolher cartucho do ZIP</h2><button type="button" data-dismiss>Cancelar</button></header>
+    <form class="dialog-body" method="dialog">
+      <label>ROM<select id="archive-entries"></select></label>
+      <button type="submit" value="open" class="primary">Abrir ROM</button>
+    </form>
+  </dialog>
+</body>
+</html>

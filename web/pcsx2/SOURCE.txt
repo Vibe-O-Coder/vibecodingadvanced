@@ -1,0 +1,12 @@
+PCSX2 para WebAssembly, distribuído pelo projeto TabStationToo
+
+Código-fonte correspondente à compilação incluída
+https://github.com/TabStationToo/TabStationToo/tree/d76ba9ff3e94093e6982408f08329b40cb553141
+https://github.com/TabStationToo/TabStationToo/archive/d76ba9ff3e94093e6982408f08329b40cb553141.zip
+
+Execução que publicou os binários incluídos neste site
+https://github.com/TabStationToo/TabStationToo/actions/runs/43918006981
+
+Identificador verificado da compilação 11b55d97e8ea. Para reproduzir,
+use Emscripten 6.0.12 e siga a seção Build do README da revisão acima.
+As licenças acompanham os arquivos COPYING.GPLv3 e ThirdPartyLicenses.html.

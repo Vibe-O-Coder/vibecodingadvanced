@@ -1,0 +1,27 @@
+FONTES E NÍVEIS DE CONFIANÇA - 2026-11-19
+
+OS CHEATS NÃO FORAM TODOS CONFIRMADOS DURANTE UMA PARTIDA.
+Presets foram extraídos manualmente das fontes abaixo e vinculados às ROMs pelas impressões digitais CRC32. Comparar duas listas que copiaram a mesma base não constitui confirmação independente.
+
+1. GameHacking.org, FireRed US Rev 1 CRC32 84EE4776: https://gamehacking.org/game/5632
+2. GameHacking.org, LeafGreen US Rev 1 CRC32 DAFFECEC: https://gamehacking.org/game/5635
+3. GameHacking.org, Emerald US CRC32 1F1C08FB: https://gamehacking.org/game/5630
+4. Libretro Database, LeafGreen US Rev 1 (CodeBreaker): https://git.libretro.com/libretro-assets/libretro-database/-/blob/master/cht/Nintendo%20-%20Game%20Boy%20Advance/Pokemon%20-%20Leaf%20Green%20Version%20%28V1.1%29%28USA%29%28Code%20Breaker%29.cht
+5. Libretro Database, Emerald US (CodeBreaker): https://github.com/libretro/libretro-database/blob/master/cht/Nintendo%20-%20Game%20Boy%20Advance/Pokemon%20-%20Emerald%20Version%20%28USA%2C%20Europe%29%20%28Code%20Breaker%29.cht
+6. Libretro Database, Sapphire US (CodeBreaker): https://github.com/libretro/libretro-database/blob/master/cht/Nintendo%20-%20Game%20Boy%20Advance/Pokemon%20-%20Sapphire%20Version%20%28USA%29%28Code%20Breaker%29.cht
+7. PokémonCoders, FireRed v1.1 (com seção testada): https://www.pokemoncoders.com/pokemon-fire-red-gameshark-codes/
+8. PokémonCoders, LeafGreen v1.1: https://www.pokemoncoders.com/pokemon-leaf-green-cheats/
+9. Glitch City Wiki, Gold/Silver arquivo histórico: https://nintyconservation.github.io/glitchcity.wiki/glitchcity.wiki/Pok%C3%A9mon_Gold_and_Silver_GameShark_codes.html
+10. PokeMundo, Crystal US: https://pokemundo.com.br/codigos/pokemon-crystal
+11. PokeMundo, Gold/Silver US: https://pokemundo.com.br/codigos/pokemon-gold-silver
+12. Tecnoblog, Ruby/Sapphire: https://tecnoblog.net/responde/cheats-pokemon-ruby-e-sapphire/
+
+DIVERGÊNCIAS CORRIGIDAS
+* Gold/Silver: endereço do primeiro item era confundido com Crystal. Gold/Silver usam D5E2 (0120E2D5 e 0101E2D5); Crystal usa D5B8.
+* Gold/Silver: dinheiro em 3 bytes usa 0F 42 3F (999999 em hexadecimal), não 99 99 99.
+* FireRed/LeafGreen v1.1: rare candy/master ball no PC precisam de códigos rev1 próprios (master + anti-DMA); o code 82025840 XXXX é mais associado ao v1.0.
+
+LIMITAÇÕES
+* Códigos Libretro de Sapphire US e LeafGreen US podem variar em Ruby rev2, Sapphire rev2, FireRed rev1 ou no hack de FireRed. Nesses casos, a tela sinaliza compatibilidade variável.
+* A simples aceitação pelo núcleo VBA-M prova apenas formato/instalação, não o efeito real.
+* O uso de 99 itens, atributos máximos, Pokédex completa e atravessar paredes pode danificar saves. Faça backup ANTES.

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Biblioteca de jogos Pokémon e catálogo de emuladores disponíveis no navegador.">
+<meta name="theme-color" content="#101816">
+<title>Vibe Arcade | Biblioteca e Emuladores</title>
+<link rel="stylesheet" href="assets/portal.css">
+<script defer src="assets/rom-library.js"></script>
+<script defer src="assets/portal.js"></script>
+</head>
+<body>
+<header class="portal-head"><div class="head-inner">
+<a href="index.html" class="logo" aria-label="Vibe Arcade, página inicial"><span class="logo-mark">V</span><span>Vibe Arcade<small>JOGOS & EMULAÇÃO</small></span></a>
+<nav class="head-links" aria-label="Seções principais"><a href="#biblioteca" id="nav-library" aria-current="page">Biblioteca</a><a href="#emuladores" id="nav-emulators">Emuladores</a><a class="go-vba" href="vba.html">Abrir VBA-M</a></nav>
+</div></header>
+<main class="portal">
+<section class="hero"><div class="hero-copy"><div class="eyebrow">Sua central de jogos</div><h1>Escolha o jogo.<br>O resto é diversão.</h1><p>Seus Pokémon reunidos em uma biblioteca. Encontre seu cartucho, abra o emulador certo e continue sua jornada. Sem precisar procurar arquivos toda vez.</p></div><div class="hero-art" aria-hidden="true"></div></section>
+<section id="library-section" aria-labelledby="library-heading">
+<div class="section-head"><div><span class="kicker">01 / Biblioteca</span><h2 id="library-heading">Jogos disponíveis <span id="rom-count">(9)</span></h2><p>6 jogos de Game Boy Advance e 3 de Game Boy Color, com cheats integrados no VBA-M.</p></div><div class="controls"><label class="search-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="search" id="game-search" placeholder="Buscar jogos..." aria-label="Buscar na biblioteca"></label><div class="filter" id="game-filters" role="group" aria-label="Filtrar console"><button type="button" data-system="all" aria-pressed="true">Todos</button><button type="button" data-system="GBA" aria-pressed="false">GBA</button><button type="button" data-system="GBC" aria-pressed="false">GBC</button></div></div></div>
+<div id="game-grid" class="tile-grid" aria-live="polite"><p>Carregando biblioteca...</p></div>
+<div class="action-row"><a href="vba.html" class="action-panel"><span class="action-icon" aria-hidden="true">+</span><span><h3>Importar uma ROM</h3><p>Abra jogos do seu dispositivo no VBA-M. Os arquivos ficam no navegador.</p></span><span class="arrow" aria-hidden="true">›</span></a><a href="vba.html" class="action-panel"><span class="action-icon" aria-hidden="true">✦</span><span><h3>Cheats e saves</h3><p>Gerencie trapaças, partidas salvas, controles e velocidade no emulador.</p></span><span class="arrow" aria-hidden="true">›</span></a></div>
+<p class="assist-note"><b>Importante:</b> os cheats são específicos da ROM e da revisão; nem todos tiveram o efeito testado dentro do jogo. Faça backup do save antes de usá-los.</p>
+</section>
+<section id="emulators-section" aria-labelledby="emulators-heading" hidden>
+<div class="section-head"><div><span class="kicker">02 / Emuladores</span><h2 id="emulators-heading">Escolha o emulador</h2><p>Emuladores integrados, experimentais e projetos ainda pendentes.</p></div><div class="controls"><label class="search-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="search" id="core-search" placeholder="Buscar console ou núcleo..." aria-label="Buscar emuladores"></label><div class="filter" id="core-filters" role="group" aria-label="Filtrar estado"><button type="button" data-status="all" aria-pressed="true">Todos</button><button type="button" data-status="available" aria-pressed="false">Disponíveis</button><button type="button" data-status="pending" aria-pressed="false">Pendentes</button></div></div></div>
+<div class="core-grid" id="core-grid" aria-live="polite"><p>Carregando emuladores...</p></div>
+<p class="assist-note">Os núcleos marcados como experimentais podem exigir HTTPS, isolamento de origem, WebGPU, BIOS ou arquivos adicionais. <b>Pendente</b> significa que ainda não há núcleo jogável disponível.</p>
+</section>
+<footer class="portal-footer"><span>Vibe Arcade · Processamento dos jogos no próprio navegador. Saves vinculados ao endereço do site e ao perfil do navegador.</span><span><a href="README.txt">Manual</a> · <a href="FONTES-E-CHECAGENS.txt">Fontes</a></span></footer>
+</main>
+</body></html>

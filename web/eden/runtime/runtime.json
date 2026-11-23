@@ -1,0 +1,23 @@
+{
+  "engineRevision": "v0.0.4-rc2-1121-gd358e857c4",
+  "build": "release",
+  "publishedAt": "2026-10-30T01:12:23.955Z",
+  "files": {
+    "eden.js": {
+      "size": 335592,
+      "sha256": "33908f19f4c1cb1128946f7a076c35b7a15826c7ef20796839896cb0ece302d4"
+    },
+    "eden.wasm": {
+      "size": 21742901,
+      "sha256": "25a7e8ea7c82ad55ffe761a1b2015ac88975189bbaa29596f6382e7022bff40c"
+    },
+    "eden_archive.js": {
+      "size": 72533,
+      "sha256": "3c719ab178365843acb4df9a784f7ca2d4df7cd5e8a076ebe966c6da1e7defde"
+    },
+    "eden_archive.wasm": {
+      "size": 552618,
+      "sha256": "9eb0e8fe9984a79c1029c5478a58a6682f3962bcaec59ec810cf53701dc7a0a7"
+    }
+  }
+}

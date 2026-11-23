@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111418">
+<meta name="format-detection" content="telephone=no">
+<title>Azahar Web</title>
+<link rel="stylesheet" href="./gaemboy3ds-ui.css?v=26">
+<link rel="stylesheet" href="../../assets/control-mapping.css">
+</head>
+<body>
+<main>
+<section id="selection-view" aria-labelledby="selection-title">
+<h1 id="selection-title">Azahar Web</h1>
+<p class="sub">Escolha um jogo de Nintendo 3DS no dispositivo.</p>
+<div class="selection-actions">
+  <button id="pick" type="button">Abrir jogo…</button><input id="file" type="file">
+  <button id="lib-pick" type="button" class="alt">Escolher pasta de jogos…</button><input id="lib-dir" type="file" webkitdirectory multiple>
+  <button id="setup-controls" type="button" class="alt">Controles</button>
+</div>
+<section id="library" aria-label="Libreria giochi" hidden>
+  <h2>Libreria</h2>
+  <div id="library-actions">
+    <button id="lib-refresh" type="button" class="alt" disabled>Aggiorna</button>
+    <button id="lib-forget" type="button" class="alt" disabled>Dimentica cartella</button>
+    <input id="lib-filter" type="search" placeholder="Cerca" aria-label="Cerca nella libreria" hidden>
+    <div id="lib-status" role="status" aria-live="polite"></div>
+    <ul id="lib-list"></ul>
+  </div>
+</section>
+<div class="demo-picker" hidden style="display:none">
+  <h2>Demo</h2>
+  <button id="demo3d" type="button" class="alt" data-file="craftus_reloaded.3dsx">Craftus Reloaded (3D)</button>
+  <button id="demo" type="button" class="alt" data-file="SuperHaxagon.3dsx">Super Haxagon (2D)</button>
+</div>
+</section>
+<section id="game-view" aria-label="Gioco" hidden>
+  <header class="game-header">
+    <h1 id="game-title">Gioco</h1>
+    <button id="game-controls" type="button" class="alt">Controles</button>
+    <button id="open-menu" type="button" class="alt" aria-haspopup="dialog" aria-controls="game-menu">Menu</button>
+  </header>
+  <div class="stage">
+    <canvas id="screen" width="400" height="480" tabindex="-1" aria-label="Schermo superiore e inferiore del Nintendo 3DS"></canvas>
+    <p id="game-status" role="status">Caricamento…</p>
+  </div>
+  <fieldset id="touch-controls" disabled aria-label="Comandi touch">
+    <legend class="sr-only">Comandi touch</legend>
+    <div class="shoulders">
+      <button type="button" data-button="10">L</button>
+      <button type="button" data-button="12">ZL</button>
+      <button type="button" data-button="13">ZR</button>
+      <button type="button" data-button="11">R</button>
+    </div>
+    <div class="control-deck">
+      <div class="stick" data-stick="left" role="group" aria-label="Circle Pad: trascina per muoverti"><span class="stick-knob"></span></div>
+      <div class="system-buttons">
+        <button type="button" data-button="2">Select</button>
+        <button type="button" data-button="3">Start</button>
+      </div>
+      <div class="stick cstick" data-stick="right" role="group" aria-label="C-Stick: trascina per muovere la visuale"><span class="stick-knob"></span></div>
+      <div class="button-cross dpad" role="group" aria-label="Croce direzionale">
+        <button type="button" class="north" data-button="4" aria-label="Su">↑</button>
+        <button type="button" class="west" data-button="6" aria-label="Sinistra">←</button>
+        <button type="button" class="east" data-button="7" aria-label="Destra">→</button>
+        <button type="button" class="south" data-button="5" aria-label="Giù">↓</button>
+      </div>
+      <div class="button-cross face-buttons" role="group" aria-label="Pulsanti azione">
+        <button type="button" class="north" data-button="9">X</button>
+        <button type="button" class="west" data-button="1">Y</button>
+        <button type="button" class="east" data-button="8">A</button>
+        <button type="button" class="south" data-button="0">B</button>
+      </div>
+    </div>
+  </fieldset>
+</section>
+<div id="notice" role="status" hidden></div>
+</main>
+<dialog id="game-menu" aria-labelledby="menu-title">
+  <header class="game-header">
+    <h2 id="menu-title">Menu</h2>
+    <button id="close-menu" type="button" class="alt" autofocus>Chiudi</button>
+  </header>
+  <div id="rom-info"></div>
+  <div class="menu-actions">
+    <button id="audio" type="button" class="alt">Audio: on</button>
+    <button id="throttle" type="button" class="alt" disabled>Velocità: 60 fps</button>
+    <button id="save" type="button" class="alt" disabled>Salva ora</button>
+    <button id="back-library" type="button">Cambia gioco</button>
+  </div>
+  <div id="menu-status" role="status"></div>
+  <section class="features" aria-label="Funzioni emulatore">
+  <div id="feature-status" role="status" aria-live="polite"></div>
+  <details>
+    <summary>Stati e backup</summary>
+    <fieldset id="storage-actions" disabled>
+      <label for="state-slot">Slot</label>
+      <select id="state-slot">
+        <option value="1">Slot 1 — vuoto</option>
+        <option value="2">Slot 2 — vuoto</option>
+        <option value="3">Slot 3 — vuoto</option>
+      </select>
+      <div class="menu-actions">
+        <button id="state-save" type="button">Salva stato</button>
+        <button id="state-load" type="button" class="alt" disabled>Carica stato</button>
+        <button id="state-delete" type="button" class="alt" disabled>Elimina stato</button>
+        <button id="export-saves" type="button" class="alt">Esporta backup ZIP</button>
+      </div>
+    </fieldset>
+  </details>
+  <details>
+    <summary>Cheat</summary>
+    <fieldset id="cheat-actions" disabled>
+      <label for="cheat-name">Nome</label>
+      <input id="cheat-name" maxlength="128" placeholder="Nome del cheat">
+      <label for="cheat-code">Codice Gateway (una riga per istruzione)</label>
+      <textarea id="cheat-code" rows="4" maxlength="65536" placeholder="XXXXXXXX XXXXXXXX"></textarea>
+      <label><input id="cheat-enabled" type="checkbox"> Attiva subito</label>
+      <button id="cheat-add" type="button">Aggiungi cheat</button>
+      <div id="cheat-list"></div>
+    </fieldset>
+  </details>
+  <details>
+    <summary>Microfono e fotocamera</summary>
+    <fieldset id="media-actions" disabled>
+      <button id="mic-toggle" type="button" class="alt">Attiva microfono</button>
+      <span id="mic-status">Disattivato</span><br>
+      <label for="camera-facing">Fotocamera</label>
+      <select id="camera-facing">
+        <option value="user">Frontale / webcam</option>
+        <option value="environment">Posteriore, se disponibile</option>
+      </select>
+      <button id="camera-toggle" type="button" class="alt">Attiva fotocamera</button>
+      <span id="camera-status">Disattivata</span>
+    </fieldset>
+  </details>
+  <details>
+    <summary>Avanzate</summary>
+    <button id="dl-log" type="button" class="alt">Scarica log</button>
+    <table>
+      <tr><td>Stato</td><td id="s-status">—</td></tr>
+      <tr><td>Renderer</td><td id="s-renderer">—</td></tr>
+      <tr><td>Caricamento</td><td id="s-load">—</td></tr>
+      <tr><td>Frame emulati</td><td id="s-frames">—</td></tr>
+      <tr><td>FPS emulazione</td><td id="s-fps">—</td></tr>
+      <tr><td>Velocità (vs 3DS 59,83 fps)</td><td id="s-speed">—</td></tr>
+      <tr><td>Tempo per frame (media)</td><td id="s-ms">—</td></tr>
+      <tr><td>Dettaglio (ultimo secondo)</td><td id="s-perf">—</td></tr>
+      <tr><td>Audio</td><td id="s-audio">—</td></tr>
+      <tr><td>Input</td><td id="s-input">—</td></tr>
+      <tr><td>Salvataggi (IndexedDB)</td><td id="s-saves">—</td></tr>
+      <tr><td>Thread / memoria</td><td id="s-mem">—</td></tr>
+      <tr><td>Log del core</td><td id="s-log">—</td></tr>
+    </table>
+    <div class="keys">
+      <b>Tastiera</b>: <kbd>←↑→↓</kbd> D-pad · <kbd>X</kbd> A · <kbd>Z</kbd> B · <kbd>S</kbd> X · <kbd>A</kbd> Y ·
+      <kbd>Q</kbd>/<kbd>W</kbd> L/R · <kbd>E</kbd>/<kbd>R</kbd> ZL/ZR · <kbd>Invio</kbd> Start · <kbd>⌫</kbd> Select ·
+      <kbd>I J K L</kbd> Circle Pad · <kbd>T F G H</kbd> C-Stick
+    </div>
+    <div id="log"></div>
+  </details>
+  </section>
+  <p class="sub"><a href="https://github.com/DomenicoGonnelli/gaemboy-3ds-web">Codice sorgente, GPL v3+</a></p>
+</dialog>
+<footer id="selection-footer">
+  Software libero sotto <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3 o successiva</a> ·
+  <a id="source-link" href="https://github.com/DomenicoGonnelli/gaemboy-3ds-web">Codice sorgente</a> ·
+  basato su <a href="https://github.com/azahar-emu/azahar">Azahar</a>. Non affiliato a Nintendo; nessun gioco, BIOS o chiave incluso.
+</footer>
+<script>
+  // Static hosts without COOP/COEP headers: let coi-sw.js add them, then reload once under its control.
+  if (!window.crossOriginIsolated && window.isSecureContext && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./coi-sw.js').then(() => {
+      if (!navigator.serviceWorker.controller && !sessionStorage.getItem('coi-reload')) {
+        sessionStorage.setItem('coi-reload', '1');
+        navigator.serviceWorker.ready.then(() => location.reload());
+      }
+    }).catch((err) => console.warn('coi-sw registration failed', err));
+  } else {
+    sessionStorage.removeItem('coi-reload');
+  }
+</script>
+<script src="../../assets/control-mapping.js"></script>
+<script type="module" src="./gaemboy3ds-page.js?v=27"></script>
+</body>
+</html>

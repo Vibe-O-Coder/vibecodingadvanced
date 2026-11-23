@@ -1,0 +1,83 @@
+<!doctype html>
+<html data-bundled-roms="on" lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111918">
+  <title>Emuladores no navegador | VBA Web</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/web-player.css">
+  <link rel="stylesheet" href="assets/control-mapping.css">
+  <script defer src="assets/files.js"></script>
+  <script defer src="assets/rom-library.js"></script>
+  <script defer src="assets/audio.js"></script>
+  <script defer src="assets/control-mapping.js"></script>
+  <script defer src="assets/web-player.js"></script>
+</head>
+<body>
+  <header class="topbar"><div class="topbar-inner">
+    <a class="brand" href="index.html" aria-label="Voltar ao catálogo">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>VBA <b>Web</b></span>
+    </a>
+    <div class="web-header-links"><a href="index.html#emuladores">Todos os emuladores</a><a href="vba.html">Abrir VBA-M</a></div>
+  </div></header>
+  <main class="layout web-layout">
+    <section class="console" aria-labelledby="web-name">
+      <div class="web-heading">
+        <div><p class="system-label" id="web-system"></p><h1 id="web-name"></h1></div>
+        <div class="web-status">
+          <p class="micro" id="web-status" role="status"></p>
+          <button type="button" id="web-controls" hidden>Controles</button>
+          <a id="web-standalone" href="#" hidden>Abrir em página inteira</a>
+        </div>
+      </div>
+      <div class="web-bay" id="web-bay">
+        <canvas id="web-display" width="160" height="144" aria-label="Tela do jogo" tabindex="0" hidden></canvas>
+        <div class="welcome" id="web-welcome">
+          <div class="cartridge-icon" aria-hidden="true"><i></i></div>
+          <p id="web-instruction"></p>
+          <button class="primary" type="button" id="web-open">Escolher arquivo</button>
+        </div>
+        <iframe id="web-embedded" title="Emulador no navegador" allow="autoplay; fullscreen; gamepad; cross-origin-isolated" hidden></iframe>
+      </div>
+      <div class="web-toolbar" id="web-toolbar" hidden>
+        <button type="button" class="primary" id="web-pause">Pausar</button>
+        <button type="button" id="web-sound" aria-pressed="false">Silenciar</button>
+        <button type="button" id="web-full">Tela cheia</button>
+        <button type="button" id="web-import-save">Importar save</button>
+        <button type="button" id="web-export">Baixar .sav</button>
+        <button type="button" id="web-stop">Fechar jogo</button>
+      </div>
+      <div class="web-touch" id="web-touch" aria-label="Controle de toque" hidden>
+        <div class="web-direction">
+          <button type="button" data-key="ArrowUp" aria-label="Cima">▲</button>
+          <button type="button" data-key="ArrowLeft" aria-label="Esquerda">◀</button>
+          <button type="button" data-key="ArrowDown" aria-label="Baixo">▼</button>
+          <button type="button" data-key="ArrowRight" aria-label="Direita">▶</button>
+        </div>
+        <div class="web-face">
+          <button type="button" data-key="KeyQ" data-snes>L</button><button type="button" data-key="KeyW" data-snes>R</button>
+          <button type="button" data-key="KeyA" data-snes>Y</button><button type="button" data-key="KeyS" data-snes>X</button>
+          <button type="button" data-key="KeyZ">B</button><button type="button" data-key="KeyX">A</button>
+        </div>
+        <div class="web-menu"><button type="button" data-key="Backspace">Select</button><button type="button" data-key="Enter">Start</button></div>
+      </div>
+      <p class="hint web-keys" id="web-keys"></p>
+      <p class="hint web-message" id="web-message" role="status" hidden></p>
+    </section>
+    <aside class="sidebar" aria-label="Emuladores e biblioteca">
+      <nav class="card" aria-label="Escolher emulador no navegador">
+        <h2>Emuladores no navegador</h2>
+        <div class="web-core-list" id="web-core-list"></div>
+      </nav>
+      <section class="card" id="web-library" hidden>
+        <h2>Biblioteca de Game Boy Color</h2>
+        <div class="web-core-list" id="web-game-list"></div>
+      </section>
+    </aside>
+    <footer class="footer"><span>Os arquivos dos jogos são carregados neste navegador.</span><a href="README.txt">Manual e fontes</a></footer>
+  </main>
+  <input type="file" id="web-file" hidden>
+  <input type="file" id="web-save-file" accept=".sav,.srm" hidden>
+</body>
+</html>
